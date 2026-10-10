@@ -1,0 +1,25 @@
+{
+  "name": "water-quality-monitoring-system",
+  "version": "1.0.0",
+  "description": "End-to-End Water Quality Monitoring, Anomaly Detection, Risk Estimation, and Public Intelligence Platform",
+  "scripts": {
+    "start": "node server/src/index.js",
+    "server": "npm --prefix server start",
+    "client": "npm --prefix client run dev",
+    "build:client": "npm --prefix client run build",
+    "test": "npm --prefix server test",
+    "simulate:fleet": "node scripts/iot_fleet_simulator.js"
+  },
+  "keywords": [
+    "water-quality",
+    "iot",
+    "wqi",
+    "anomaly-detection",
+    "operational-risk",
+    "esp32",
+    "mqtt",
+    "realtime-dashboard"
+  ],
+  "author": "AquaIntel Team",
+  "license": "MIT"
+}
