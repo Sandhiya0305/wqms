@@ -203,7 +203,7 @@ class SimulationEngine {
       let dTemp = (Math.random() - 0.5) * 0.1;
 
       // Apply Active Scenarios if triggered
-      if (this.activeScenarios.has('SPILL') && station.id === 'STATION_RIVERSIDE_01') {
+      if (this.activeScenarios.has('SPILL') && (station.id === 'TRICHY_KAVERI_01' || station.id === 'BLR_RIVERSIDE_12')) {
         // Severe Acid Spill: pH plunges, TDS spikes
         dPh = -0.35;
         dTds = 35.0;
@@ -211,14 +211,14 @@ class SimulationEngine {
         dDo = -0.4;
       }
 
-      if (this.activeScenarios.has('RUNOFF') && station.id === 'STATION_EAST_03') {
+      if (this.activeScenarios.has('RUNOFF') && (station.id === 'TRICHY_KOLLIDAM_02' || station.id === 'BLR_EAST_13')) {
         // Monsoon Runoff: Turbidity explodes, DO decreases
         dTurb = 6.0;
         dDo = -0.3;
         dTds = 15.0;
       }
 
-      if (this.activeScenarios.has('CHLORINE_DROP') && station.id === 'STATION_WEST_04') {
+      if (this.activeScenarios.has('CHLORINE_DROP') && (station.id === 'TRICHY_ROCKFORT_04' || station.id === 'CHENNAI_ADYAR_11')) {
         // Disinfection drop & contamination in tap grid
         dPh = 0.2;
         dTurb = 2.5;
@@ -255,12 +255,14 @@ class SimulationEngine {
     if (scenarioName === 'RESET') {
       this.activeScenarios.clear();
       // Reset station states to normal
-      this.stationStates.set('STATION_RIVERSIDE_01', { ph: 7.45, turbidity_ntu: 3.2, do_mg_l: 8.1, tds_ppm: 142, temp_c: 24.8, battery_pct: 94, signal_rssi: -62 });
-      this.stationStates.set('STATION_NORTH_02', { ph: 7.20, turbidity_ntu: 0.8, do_mg_l: 8.3, tds_ppm: 165, temp_c: 23.5, battery_pct: 100, signal_rssi: -50 });
-      this.stationStates.set('STATION_EAST_03', { ph: 7.60, turbidity_ntu: 2.2, do_mg_l: 8.5, tds_ppm: 155, temp_c: 23.0, battery_pct: 91, signal_rssi: -70 });
-      this.stationStates.set('STATION_WEST_04', { ph: 7.15, turbidity_ntu: 1.1, do_mg_l: 7.8, tds_ppm: 195, temp_c: 24.0, battery_pct: 88, signal_rssi: -68 });
-      this.stationStates.set('STATION_CENTRAL_05', { ph: 7.20, turbidity_ntu: 0.8, do_mg_l: 8.3, tds_ppm: 165, temp_c: 23.5, battery_pct: 100, signal_rssi: -48 });
-      this.stationStates.set('STATION_SOUTH_06', { ph: 7.05, turbidity_ntu: 0.6, do_mg_l: 5.3, tds_ppm: 380, temp_c: 24.5, battery_pct: 86, signal_rssi: -76 });
+      this.stationStates.set('TRICHY_KAVERI_01', { ph: 7.45, turbidity_ntu: 3.2, do_mg_l: 8.1, tds_ppm: 142, temp_c: 26.5, battery_pct: 95, signal_rssi: -58 });
+      this.stationStates.set('TRICHY_KOLLIDAM_02', { ph: 7.40, turbidity_ntu: 3.0, do_mg_l: 8.2, tds_ppm: 150, temp_c: 26.5, battery_pct: 92, signal_rssi: -62 });
+      this.stationStates.set('TRICHY_WTP_KAMBAR_03', { ph: 7.25, turbidity_ntu: 0.8, do_mg_l: 8.3, tds_ppm: 180, temp_c: 25.5, battery_pct: 100, signal_rssi: -45 });
+      this.stationStates.set('TRICHY_ROCKFORT_04', { ph: 7.20, turbidity_ntu: 1.2, do_mg_l: 7.8, tds_ppm: 210, temp_c: 26.0, battery_pct: 89, signal_rssi: -66 });
+      this.stationStates.set('TRICHY_THILLAI_05', { ph: 7.20, turbidity_ntu: 1.1, do_mg_l: 7.9, tds_ppm: 205, temp_c: 26.0, battery_pct: 91, signal_rssi: -64 });
+      this.stationStates.set('TRICHY_PONMALAI_06', { ph: 7.60, turbidity_ntu: 2.2, do_mg_l: 8.5, tds_ppm: 150, temp_c: 25.0, battery_pct: 87, signal_rssi: -72 });
+      this.stationStates.set('TRICHY_KKNAGAR_07', { ph: 7.10, turbidity_ntu: 0.7, do_mg_l: 5.4, tds_ppm: 390, temp_c: 27.0, battery_pct: 84, signal_rssi: -75 });
+      this.stationStates.set('TRICHY_NIT_08', { ph: 7.10, turbidity_ntu: 0.6, do_mg_l: 5.5, tds_ppm: 380, temp_c: 27.0, battery_pct: 88, signal_rssi: -78 });
     } else {
       this.activeScenarios.add(scenarioName);
     }

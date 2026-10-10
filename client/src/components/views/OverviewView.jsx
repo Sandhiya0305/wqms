@@ -8,95 +8,154 @@ import {
   Activity, 
   Bell, 
   Cpu, 
-  ArrowUpRight 
+  ArrowUpRight,
+  MapPin
 } from 'lucide-react';
 import { useTelemetry } from '../../context/TelemetryContext';
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import StationMap from '../authority/StationMap';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 export default function OverviewView({ setActiveView }) {
   const { stations, latestTelemetry, activeAlerts } = useTelemetry();
+  const { selectedCity, setSelectedCity } = useAuth();
+  const { isDark } = useTheme();
 
-  // Compute live stat metrics
-  const totalStations = stations.length > 0 ? stations.length : 24;
-  const criticalCount = activeAlerts.filter(a => a.severity === 'CRITICAL').length;
-  const warningCount = activeAlerts.filter(a => a.severity === 'WARNING').length;
+  const cityStations = stations.filter(s => !selectedCity || s.city === selectedCity);
+
+  const safeCount = cityStations.filter(s => {
+    const wqi = latestTelemetry[s.id]?.wqi_score || 20;
+    return wqi <= 50;
+  }).length;
+
+  const cautionCount = cityStations.filter(s => {
+    const wqi = latestTelemetry[s.id]?.wqi_score || 20;
+    return wqi > 50 && wqi <= 75;
+  }).length;
+
+  const criticalCount = cityStations.filter(s => {
+    const wqi = latestTelemetry[s.id]?.wqi_score || 20;
+    return wqi > 75;
+  }).length;
+
+  const cityAlerts = activeAlerts.filter(a => {
+    const st = stations.find(s => s.id === a.station_id);
+    return !selectedCity || (st && st.city === selectedCity);
+  });
+
+  const criticalAlertsCount = cityAlerts.filter(a => a.severity === 'CRITICAL').length;
 
   const mock7DayTrend = [
-    { date: 'Apr 22', wqi: 79.5 },
-    { date: 'Apr 23', wqi: 81.2 },
-    { date: 'Apr 24', wqi: 83.0 },
-    { date: 'Apr 25', wqi: 80.8 },
-    { date: 'Apr 26', wqi: 82.5 },
-    { date: 'Apr 27', wqi: 84.1 },
-    { date: 'Apr 28', wqi: 82.4 },
+    { date: 'Mon', wqi: 82.5 },
+    { date: 'Tue', wqi: 83.2 },
+    { date: 'Wed', wqi: 84.0 },
+    { date: 'Thu', wqi: 82.8 },
+    { date: 'Fri', wqi: 85.5 },
+    { date: 'Sat', wqi: 86.1 },
+    { date: 'Sun', wqi: 85.4 },
   ];
 
   return (
     <div className="space-y-6">
       
-      {/* Title & Subtitle */}
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Water Quality Overview</h1>
-        <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Real-time monitoring across all water sources</p>
+      {/* Title & City Switcher */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 text-xs font-semibold mb-2">
+            <MapPin className="w-3.5 h-3.5" />
+            <span>Municipal Command Center • {selectedCity}</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            Water Quality Intelligence Overview
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+            Continuous automated telemetry and health surveillance across {selectedCity}
+          </p>
+        </div>
+
+        {/* City Filter Pills */}
+        <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl text-xs font-semibold shrink-0">
+          {['Trichy', 'Chennai', 'Bengaluru', 'Madurai'].map(city => (
+            <button
+              key={city}
+              onClick={() => setSelectedCity(city)}
+              className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
+                selectedCity === city
+                  ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              {city}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* 4 Top KPI Stat Cards matching Image Screen 1 */}
+      {/* 4 Top KPI Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Total Stations */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-start justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-start justify-between">
           <div>
-            <span className="text-xs font-semibold text-slate-500">Total Stations</span>
-            <div className="text-2xl font-black text-slate-900 font-mono mt-1">24</div>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Monitored Stations</span>
+            <div className="text-2xl font-black text-slate-900 dark:text-slate-100 font-mono mt-1">
+              {cityStations.length}
+            </div>
             <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
-              <span>2 offline</span>
+              <span>All stations live</span>
             </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
             <Layers className="w-5 h-5" />
           </div>
         </div>
 
         {/* Safe Quality */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-start justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-start justify-between">
           <div>
-            <span className="text-xs font-semibold text-slate-500">Safe Quality</span>
-            <div className="text-2xl font-black text-emerald-600 font-mono mt-1">18</div>
-            <div className="text-xs text-emerald-600 font-medium mt-1">
-              75% of stations
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Safe Drinking Water</span>
+            <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-1">
+              {safeCount}
+            </div>
+            <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-1">
+              {cityStations.length > 0 ? Math.round((safeCount / cityStations.length) * 100) : 100}% of stations
             </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
             <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
 
-        {/* At Risk */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-start justify-between">
+        {/* Moderate / At Risk */}
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-start justify-between">
           <div>
-            <span className="text-xs font-semibold text-slate-500">At Risk</span>
-            <div className="text-2xl font-black text-amber-500 font-mono mt-1">4</div>
-            <div className="text-xs text-amber-600 font-medium mt-1">
-              17% of stations
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Filter Advised</span>
+            <div className="text-2xl font-black text-amber-500 font-mono mt-1">
+              {cautionCount}
+            </div>
+            <div className="text-xs text-amber-600 dark:text-amber-400 font-medium mt-1">
+              Slight parameter variance
             </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-500 flex items-center justify-center">
             <AlertTriangle className="w-5 h-5" />
           </div>
         </div>
 
-        {/* Critical */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-start justify-between">
+        {/* Critical / Boil Water */}
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-start justify-between">
           <div>
-            <span className="text-xs font-semibold text-slate-500">Critical</span>
-            <div className="text-2xl font-black text-rose-600 font-mono mt-1">2</div>
-            <div className="text-xs text-rose-600 font-medium mt-1">
-              8% of stations
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Boil Water Advisories</span>
+            <div className="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono mt-1">
+              {criticalCount}
+            </div>
+            <div className="text-xs text-rose-600 dark:text-rose-400 font-medium mt-1">
+              Active precautions
             </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
             <AlertOctagon className="w-5 h-5" />
           </div>
         </div>
@@ -107,58 +166,58 @@ export default function OverviewView({ setActiveView }) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left: Water Quality Map Card */}
-        <div className="lg:col-span-7 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        <div className="lg:col-span-7 bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-slate-900 tracking-tight">Water Quality Map</h3>
-              <span className="text-xs text-blue-600 font-medium cursor-pointer hover:underline" onClick={() => setActiveView('map')}>
-                View Full Map &gt;
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                Live Water Quality GIS Map ({selectedCity})
+              </h3>
+              <span 
+                className="text-xs text-blue-600 dark:text-blue-400 font-semibold cursor-pointer hover:underline" 
+                onClick={() => setActiveView('map')}
+              >
+                Open Fullscreen GIS Map &gt;
               </span>
             </div>
             
-            {/* Embedded GIS Leaflet Map */}
-            <div className="rounded-xl overflow-hidden border border-slate-200">
-              <StationMap />
-            </div>
+            <StationMap />
           </div>
 
-          {/* Map Legend matching Image 1 */}
-          <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between text-xs text-slate-600">
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between text-xs text-slate-600 dark:text-slate-300">
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Safe
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Safe Tap Water
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-400"></span> Moderate
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Filter Recommended
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> At Risk
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span> Critical
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span> Boil Water Alert
               </span>
             </div>
-            <span className="text-[11px] text-slate-400">Updated: Just now</span>
+            <span className="text-[11px] text-slate-400 font-mono">Real-time IoT Feed</span>
           </div>
         </div>
 
-        {/* Right Column: 7-Day WQI Trend + Sensor Fleet Health + Active Alerts */}
+        {/* Right Column: 7-Day Trend + Sensor Health + Active Alerts */}
         <div className="lg:col-span-5 flex flex-col gap-5">
           
-          {/* WQI Trend (Last 7 Days) */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex-1">
+          {/* WQI Trend */}
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex-1">
             <div className="flex items-start justify-between mb-2">
               <div>
-                <h3 className="text-sm font-bold text-slate-900 tracking-tight">WQI Trend (Last 7 Days)</h3>
-                <span className="text-xs text-slate-400">Network Average Cleanliness</span>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                  7-Day Cleanliness Trend ({selectedCity})
+                </h3>
+                <span className="text-xs text-slate-400">Municipal Drinking Water Index</span>
               </div>
               <div className="text-right">
-                <div className="text-xl font-bold font-mono text-slate-900 flex items-center justify-end gap-1">
-                  <span>82.4</span>
-                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">Good</span>
+                <div className="text-xl font-bold font-mono text-slate-900 dark:text-slate-100 flex items-center justify-end gap-1">
+                  <span>85.4%</span>
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded">Good</span>
                 </div>
-                <div className="text-[11px] text-emerald-600 font-medium flex items-center justify-end gap-0.5 mt-0.5">
-                  <ArrowUpRight className="w-3 h-3" /> +1.2% this week
+                <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center justify-end gap-0.5 mt-0.5">
+                  <ArrowUpRight className="w-3 h-3" /> +1.4% improvement
                 </div>
               </div>
             </div>
@@ -168,18 +227,24 @@ export default function OverviewView({ setActiveView }) {
                 <AreaChart data={mock7DayTrend} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                   <defs>
                     <linearGradient id="wqiGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0284c7" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#0284c7" stopOpacity={0.0} />
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#1e293b' : '#f1f5f9'} />
                   <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} />
                   <YAxis stroke="#94a3b8" fontSize={10} domain={[60, 100]} tickLine={false} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#0f172a', color: '#fff', borderRadius: '8px', fontSize: '11px' }}
-                    formatter={(val) => [`${val} WQI`, 'Avg Quality']}
+                    contentStyle={{ 
+                      backgroundColor: isDark ? '#0f172a' : '#ffffff', 
+                      borderColor: isDark ? '#334155' : '#e2e8f0',
+                      color: isDark ? '#fff' : '#000', 
+                      borderRadius: '12px', 
+                      fontSize: '11px' 
+                    }}
+                    formatter={(val) => [`${val}%`, 'Cleanliness Score']}
                   />
-                  <Area type="monotone" dataKey="wqi" stroke="#0284c7" strokeWidth={2.5} fill="url(#wqiGrad)" />
+                  <Area type="monotone" dataKey="wqi" stroke="#2563eb" strokeWidth={2.5} fill="url(#wqiGrad)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -188,17 +253,17 @@ export default function OverviewView({ setActiveView }) {
           {/* Bottom Split: Sensor Fleet Health (left) + Active Alerts (right) */}
           <div className="grid grid-cols-2 gap-4">
             
-            {/* Sensor Fleet Health Ring Card */}
+            {/* Sensor Fleet Health Card */}
             <div 
               onClick={() => setActiveView('hardware')}
-              className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm cursor-pointer hover:border-blue-300 transition"
+              className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition"
             >
-              <span className="text-xs font-bold text-slate-700 block mb-2">Sensor Fleet Health</span>
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-2">Fleet Health</span>
               <div className="flex items-center gap-3">
                 <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
                   <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
                     <path
-                      className="text-slate-100"
+                      className="text-slate-100 dark:text-slate-800"
                       strokeWidth="3.5"
                       stroke="currentColor"
                       fill="none"
@@ -206,7 +271,7 @@ export default function OverviewView({ setActiveView }) {
                     />
                     <path
                       className="text-emerald-500"
-                      strokeDasharray="92, 100"
+                      strokeDasharray="96, 100"
                       strokeWidth="3.5"
                       strokeLinecap="round"
                       stroke="currentColor"
@@ -214,11 +279,11 @@ export default function OverviewView({ setActiveView }) {
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                   </svg>
-                  <span className="absolute font-mono font-bold text-xs text-slate-800">92%</span>
+                  <span className="absolute font-mono font-bold text-xs text-slate-800 dark:text-slate-200">96%</span>
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-slate-900">22/24 online</div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">2 pending calibration</div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-slate-100">{cityStations.length}/{cityStations.length} live</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">Calibrated probes</div>
                 </div>
               </div>
             </div>
@@ -226,16 +291,16 @@ export default function OverviewView({ setActiveView }) {
             {/* Active Alerts Card */}
             <div 
               onClick={() => setActiveView('alerts')}
-              className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm cursor-pointer hover:border-rose-300 transition"
+              className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm cursor-pointer hover:border-rose-400 dark:hover:border-rose-500 transition"
             >
-              <span className="text-xs font-bold text-slate-700 block mb-2">Active Alerts</span>
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-2">Active Alerts</span>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-500 flex items-center justify-center shrink-0">
                   <Bell className="w-6 h-6" />
                 </div>
                 <div>
-                  <div className="text-lg font-black font-mono text-slate-900">6</div>
-                  <div className="text-[10px] text-rose-600 font-semibold">2 critical</div>
+                  <div className="text-lg font-black font-mono text-slate-900 dark:text-slate-100">{cityAlerts.length}</div>
+                  <div className="text-[10px] text-rose-600 dark:text-rose-400 font-semibold">{criticalAlertsCount} critical</div>
                 </div>
               </div>
             </div>

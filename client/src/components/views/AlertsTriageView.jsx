@@ -7,102 +7,57 @@ import {
   Check, 
   AlertTriangle, 
   AlertOctagon, 
-  Info, 
   ChevronLeft, 
   ChevronRight,
   Send,
   Eye,
-  CheckCircle2
+  CheckCircle2,
+  Bell
 } from 'lucide-react';
 import { useTelemetry } from '../../context/TelemetryContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AlertsTriageView({ setActiveView }) {
-  const { activeAlerts, acknowledgeAlert, resolveAlert } = useTelemetry();
+  const { activeAlerts, acknowledgeAlert, resolveAlert, stations } = useTelemetry();
+  const { selectedCity, isEngineer } = useAuth();
   
   const [searchParam, setSearchParam] = useState('');
   const [severityFilter, setSeverityFilter] = useState('ALL');
-  const [stationFilter, setStationFilter] = useState('ALL');
   const [activeModalAction, setActiveModalAction] = useState(null);
 
-  // Seed table matching exact entries from Image 3
-  const tableData = [
-    {
-      id: 1,
-      time: 'Apr 28, 10:24',
-      station: 'East Reservoir',
-      parameter: 'Turbidity',
-      value: '12.5 NTU',
-      threshold: '> 5 NTU',
-      severity: 'Critical',
-      status: 'Open',
-      action: 'Investigate'
-    },
-    {
-      id: 2,
-      time: 'Apr 28, 09:17',
-      station: 'North Plant',
-      parameter: 'Chlorine',
-      value: '0.1 mg/L',
-      threshold: '< 0.3 mg/L',
-      severity: 'High',
-      status: 'Open',
-      action: 'Dispatch Team'
-    },
-    {
-      id: 3,
-      time: 'Apr 28, 08:42',
-      station: 'West Tap',
-      parameter: 'pH',
-      value: '5.8',
-      threshold: '< 6.5',
-      severity: 'High',
-      status: 'Open',
-      action: 'Notify'
-    },
-    {
-      id: 4,
-      time: 'Apr 28, 07:56',
-      station: 'Central WTP',
-      parameter: 'TDS',
-      value: '620 ppm',
-      threshold: '> 500 ppm',
-      severity: 'Medium',
-      status: 'Acknowledged',
-      action: 'Monitor'
-    },
-    {
-      id: 5,
-      time: 'Apr 28, 06:33',
-      station: 'South Borewell',
-      parameter: 'Nitrate',
-      value: '58 mg/L',
-      threshold: '> 45 mg/L',
-      severity: 'Medium',
-      status: 'Open',
-      action: 'Investigate'
-    },
-    {
-      id: 6,
-      time: 'Apr 27, 22:11',
-      station: 'Riverside',
-      parameter: 'Turbidity',
-      value: '18.7 NTU',
-      threshold: '> 5 NTU',
-      severity: 'Critical',
-      status: 'Open',
-      action: 'Dispatch Team'
-    }
-  ];
+  // Filter alerts by current city
+  const cityStations = stations.filter(s => !selectedCity || s.city === selectedCity);
+  const cityStationIds = new Set(cityStations.map(s => s.id));
 
-  const handleActionClick = (item) => {
-    setActiveModalAction(item);
+  const displayAlerts = activeAlerts.filter(a => {
+    // If station in city or alert mentions city
+    const inCity = cityStationIds.has(a.station_id) || a.station_id?.startsWith(selectedCity.toUpperCase());
+    if (!inCity && cityStations.length > 0) return false;
+
+    if (severityFilter !== 'ALL' && a.severity !== severityFilter) return false;
+    if (searchParam) {
+      const q = searchParam.toLowerCase();
+      return (
+        a.title?.toLowerCase().includes(q) || 
+        a.description?.toLowerCase().includes(q) || 
+        a.station_id?.toLowerCase().includes(q)
+      );
+    }
+    return true;
+  });
+
+  const handleActionClick = (alertItem, actionName) => {
+    setActiveModalAction({ ...alertItem, actionName });
   };
 
-  const executeTriageAction = () => {
-    if (activeModalAction) {
-      alert(`Action '${activeModalAction.action}' executed for ${activeModalAction.station}. Field teams notified.`);
-      setActiveModalAction(null);
+  const confirmAction = async () => {
+    if (!activeModalAction) return;
+    if (activeModalAction.actionName === 'ACKNOWLEDGE') {
+      await acknowledgeAlert(activeModalAction.id);
+    } else if (activeModalAction.actionName === 'RESOLVE') {
+      await resolveAlert(activeModalAction.id);
     }
+    setActiveModalAction(null);
   };
 
   return (
@@ -111,31 +66,41 @@ export default function AlertsTriageView({ setActiveView }) {
       {/* Title & Top Right Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Alerts & Triage</h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">View and manage water quality alerts across all stations</p>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 text-xs font-semibold mb-2">
+            <Bell className="w-3.5 h-3.5" />
+            <span>Incident Management • {selectedCity}</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            Water Quality Alerts & Incident Triage
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+            Automated sensor anomalies and threshold violation tickets in {selectedCity}
+          </p>
         </div>
 
-        <button
-          onClick={() => setActiveView('simulation')}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-blue-500/20 transition self-start sm:self-auto"
-        >
-          <SlidersHorizontal className="w-3.5 h-3.5" />
-          <span>Simulation Controls</span>
-        </button>
+        {isEngineer && (
+          <button
+            onClick={() => setActiveView('thresholds')}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md transition self-start sm:self-auto cursor-pointer"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span>Calibrate Thresholds</span>
+          </button>
+        )}
       </div>
 
-      {/* Filter & Search Bar matching Image 3 */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      {/* Filter & Search Bar */}
+      <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         
         {/* Search Input */}
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search alerts, station or parameter..."
+            placeholder="Search alerts, parameters or stations..."
             value={searchParam}
             onChange={(e) => setSearchParam(e.target.value)}
-            className="w-full bg-slate-50 pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-slate-50 dark:bg-slate-800 pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 font-medium"
           />
         </div>
 
@@ -144,142 +109,135 @@ export default function AlertsTriageView({ setActiveView }) {
           <select 
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500"
           >
-            <option value="ALL">All Severity</option>
-            <option value="Critical">Critical</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
+            <option value="ALL">All Severities</option>
+            <option value="CRITICAL">Critical Only</option>
+            <option value="WARNING">Warning Only</option>
+            <option value="INFO">Informational</option>
           </select>
-
-          {/* Station Filter Dropdown */}
-          <select 
-            value={stationFilter}
-            onChange={(e) => setStationFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="ALL">All Stations</option>
-            <option value="Riverside">Riverside</option>
-            <option value="North Plant">North Plant</option>
-            <option value="East Reservoir">East Reservoir</option>
-            <option value="West Tap">West Tap</option>
-            <option value="Central WTP">Central WTP</option>
-            <option value="South Borewell">South Borewell</option>
-          </select>
-
-          {/* Date Range Picker */}
-          <div className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700">
-            <Calendar className="w-3.5 h-3.5 text-slate-400" />
-            <span>Apr 21, 2025 - Apr 28, 2025</span>
-          </div>
         </div>
 
       </div>
 
-      {/* Alerts Table matching Image 3 */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+      {/* Alerts Table */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <thead className="bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               <tr>
-                <th className="py-3 px-4">Time</th>
-                <th className="py-3 px-4">Station</th>
-                <th className="py-3 px-4">Parameter</th>
-                <th className="py-3 px-4">Value</th>
-                <th className="py-3 px-4">Threshold</th>
+                <th className="py-3 px-6">Alert Headline</th>
+                <th className="py-3 px-4">Station ID</th>
                 <th className="py-3 px-4">Severity</th>
                 <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Action</th>
+                <th className="py-3 px-4">Timestamp</th>
+                <th className="py-3 px-6 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {tableData.map((row) => {
-                let sevBg = 'bg-amber-50 text-amber-600 border-amber-200';
-                if (row.severity === 'Critical') sevBg = 'bg-rose-50 text-rose-600 border-rose-200';
-                if (row.severity === 'High') sevBg = 'bg-orange-50 text-orange-600 border-orange-200';
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {displayAlerts.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="py-12 text-center text-slate-400 text-xs">
+                    No active incident alerts for {selectedCity}. All drinking water parameters are nominal.
+                  </td>
+                </tr>
+              ) : (
+                displayAlerts.map((row) => {
+                  let sevBg = 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800';
+                  if (row.severity === 'CRITICAL') sevBg = 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800';
+                  if (row.severity === 'INFO') sevBg = 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800';
 
-                return (
-                  <tr key={row.id} className="hover:bg-slate-50/60 transition">
-                    <td className="py-3.5 px-4 font-mono text-slate-500 font-medium">{row.time}</td>
-                    <td className="py-3.5 px-4 font-bold text-slate-900">{row.station}</td>
-                    <td className="py-3.5 px-4 text-slate-700 font-medium">{row.parameter}</td>
-                    <td className="py-3.5 px-4 font-mono font-bold text-slate-900">{row.value}</td>
-                    <td className="py-3.5 px-4 font-mono text-slate-500">{row.threshold}</td>
-                    <td className="py-3.5 px-4">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${sevBg}`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-                        {row.severity}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                        row.status === 'Acknowledged' 
-                          ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' 
-                          : 'bg-slate-100 text-slate-600'
-                      }`}>
-                        {row.status}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <button
-                        onClick={() => handleActionClick(row)}
-                        className="px-3 py-1 bg-white hover:bg-slate-100 text-blue-600 font-semibold rounded-lg border border-blue-200 text-[11px] shadow-sm transition"
-                      >
-                        {row.action}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+                  const st = stations.find(s => s.id === row.station_id);
+
+                  return (
+                    <tr key={row.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition">
+                      <td className="py-4 px-6">
+                        <div className="font-bold text-slate-900 dark:text-slate-100">{row.title}</div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{row.description}</div>
+                      </td>
+
+                      <td className="py-4 px-4 font-mono font-semibold text-slate-700 dark:text-slate-300">
+                        <div>{row.station_id}</div>
+                        <div className="text-[10px] text-slate-400 font-sans">{st?.district || st?.name}</div>
+                      </td>
+
+                      <td className="py-4 px-4">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${sevBg}`}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+                          {row.severity}
+                        </span>
+                      </td>
+
+                      <td className="py-4 px-4">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          row.status === 'RESOLVED' 
+                            ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' 
+                            : row.status === 'ACKNOWLEDGED'
+                            ? 'bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
+                            : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 animate-pulse'
+                        }`}>
+                          {row.status}
+                        </span>
+                      </td>
+
+                      <td className="py-4 px-4 font-mono text-slate-400 text-[11px]">
+                        {new Date(row.created_at || Date.now()).toLocaleTimeString()}
+                      </td>
+
+                      <td className="py-4 px-6 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {row.status !== 'RESOLVED' && (
+                            <>
+                              {row.status !== 'ACKNOWLEDGED' && (
+                                <button
+                                  onClick={() => handleActionClick(row, 'ACKNOWLEDGE')}
+                                  className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-lg border border-slate-200 dark:border-slate-700 text-[11px] shadow-sm transition"
+                                >
+                                  Acknowledge
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleActionClick(row, 'RESOLVE')}
+                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[11px] shadow-sm transition"
+                              >
+                                Resolve
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
-
-        {/* Table Footer with Pagination */}
-        <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <span>Showing 1 - 6 of 24 alerts</span>
-          
-          <div className="flex items-center gap-1 font-semibold">
-            <button className="p-1 rounded hover:bg-slate-100 text-slate-400">
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button className="w-7 h-7 rounded bg-blue-600 text-white font-bold flex items-center justify-center">1</button>
-            <button className="w-7 h-7 rounded hover:bg-slate-100 text-slate-600 flex items-center justify-center">2</button>
-            <button className="w-7 h-7 rounded hover:bg-slate-100 text-slate-600 flex items-center justify-center">3</button>
-            <button className="p-1 rounded hover:bg-slate-100 text-slate-600">
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
       </div>
 
-      {/* Action Triage Modal */}
+      {/* Confirmation Modal */}
       {activeModalAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
-            <h3 className="text-base font-bold text-slate-900">Execute Incident Action</h3>
-            <p className="text-xs text-slate-500 mt-1">
-              You are executing <strong>{activeModalAction.action}</strong> for {activeModalAction.station} on parameter {activeModalAction.parameter} ({activeModalAction.value}).
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+              Confirm Incident Action: {activeModalAction.actionName}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              You are updating incident: <strong>{activeModalAction.title}</strong> at {activeModalAction.station_id}.
             </p>
 
-            <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
-              <div className="flex justify-between text-slate-600"><span>Severity:</span> <span className="font-bold text-rose-600">{activeModalAction.severity}</span></div>
-              <div className="flex justify-between text-slate-600"><span>Threshold Exceeded:</span> <span className="font-mono">{activeModalAction.threshold}</span></div>
-              <div className="flex justify-between text-slate-600"><span>Incident Timestamp:</span> <span>{activeModalAction.time}</span></div>
-            </div>
-
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="flex justify-end gap-2 pt-2">
               <button 
                 onClick={() => setActiveModalAction(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+                className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
               >
                 Cancel
               </button>
               <button 
-                onClick={executeTriageAction}
-                className="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md transition"
+                onClick={confirmAction}
+                className="px-4 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md transition"
               >
-                Confirm & Dispatch
+                Confirm
               </button>
             </div>
           </div>

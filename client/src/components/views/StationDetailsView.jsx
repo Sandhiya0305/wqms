@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { 
   ArrowLeft, 
   MapPin, 
-  ExternalLink, 
   CheckCircle2, 
   Droplet, 
   Thermometer, 
@@ -12,129 +11,122 @@ import {
   AlertTriangle 
 } from 'lucide-react';
 import { useTelemetry } from '../../context/TelemetryContext';
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 export default function StationDetailsView({ setActiveView }) {
   const { stations, selectedStationId, setSelectedStationId, latestTelemetry, stationHistories } = useTelemetry();
-  const [activeSubTab, setActiveSubTab] = useState('Overview');
+  const { selectedCity } = useAuth();
+  const { isDark } = useTheme();
 
-  const currentStation = stations.find(s => s.id === selectedStationId) || stations[0];
+  const cityStations = stations.filter(s => !selectedCity || s.city === selectedCity);
+  const currentStation = cityStations.find(s => s.id === selectedStationId) || cityStations[0] || stations[0];
   const tel = latestTelemetry[currentStation?.id] || {};
-  const history = stationHistories[currentStation?.id] || [];
-
-  const subTabs = ['Overview', 'Telemetry', 'WQI & Risk', 'Alerts', 'History'];
 
   // Current readings table data
   const readings = [
-    { name: 'pH', value: tel.ph ?? 7.4, unit: 'pH', status: 'Normal', icon: Droplet },
-    { name: 'Turbidity', value: tel.turbidity_ntu ?? 3.2, unit: 'NTU', status: 'Normal', icon: Activity },
-    { name: 'Temperature', value: tel.temp_c ?? 24.8, unit: '°C', status: 'Normal', icon: Thermometer },
-    { name: 'TDS', value: tel.tds_ppm ?? 142, unit: 'ppm', status: 'Normal', icon: Zap },
-    { name: 'Dissolved Oxygen', value: tel.do_mg_l ?? 8.1, unit: 'mg/L', status: 'Normal', icon: ShieldCheck },
-    { name: 'Chlorine', value: '0.6', unit: 'mg/L', status: 'Normal', icon: Droplet },
+    { name: 'Water Clarity (Turbidity)', value: tel.turbidity ?? 1.8, unit: 'NTU', status: 'Clear', icon: Activity },
+    { name: 'Acidity (pH)', value: tel.ph ?? 7.3, unit: 'pH', status: 'Balanced', icon: Droplet },
+    { name: 'Disinfection Barrier', value: tel.chlorine ?? 0.8, unit: 'mg/L', status: 'Protected', icon: ShieldCheck },
+    { name: 'Mineral Content (TDS)', value: tel.tds ?? 190, unit: 'ppm', status: 'Normal', icon: Zap },
+    { name: 'Dissolved Oxygen', value: tel.dissolved_oxygen ?? 7.4, unit: 'mg/L', status: 'Good', icon: Droplet },
+    { name: 'Water Temperature', value: tel.temperature ?? 26.5, unit: '°C', status: 'Normal', icon: Thermometer },
   ];
 
   // 24h multi-line trend mock for Recharts
   const trendData = [
-    { time: '00:00', ph: 7.3, turbidity: 2.8, tds: 140, temp: 23.5 },
-    { time: '04:00', ph: 7.4, turbidity: 3.0, tds: 142, temp: 22.8 },
-    { time: '08:00', ph: 7.5, turbidity: 3.4, tds: 145, temp: 24.2 },
-    { time: '12:00', ph: 7.4, turbidity: 3.2, tds: 142, temp: 25.4 },
-    { time: '16:00', ph: 7.3, turbidity: 3.1, tds: 141, temp: 25.1 },
-    { time: '20:00', ph: 7.4, turbidity: 3.3, tds: 143, temp: 24.0 },
-    { time: '24:00', ph: 7.4, turbidity: 3.2, tds: 142, temp: 23.8 },
+    { time: '00:00', ph: 7.2, turbidity: 1.7, tds: 185 },
+    { time: '04:00', ph: 7.3, turbidity: 1.8, tds: 188 },
+    { time: '08:00', ph: 7.4, turbidity: 2.1, tds: 192 },
+    { time: '12:00', ph: 7.3, turbidity: 1.9, tds: 190 },
+    { time: '16:00', ph: 7.2, turbidity: 1.8, tds: 189 },
+    { time: '20:00', ph: 7.3, turbidity: 1.8, tds: 191 },
+    { time: 'Now', ph: tel.ph || 7.3, turbidity: tel.turbidity || 1.8, tds: tel.tds || 190 },
   ];
 
-  const wqiScore = tel.wqi_score ?? 86;
+  const wqiScore = 100 - Math.min(100, tel.wqi_score ?? 20);
 
   return (
     <div className="space-y-6">
       
-      {/* Breadcrumb */}
-      <div>
-        <button 
-          onClick={() => setActiveView('overview')}
-          className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-blue-600 transition"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Stations</span>
-        </button>
-      </div>
-
-      {/* Station Header Card from Image 2 */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          {/* Station Photo Thumbnail */}
-          <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
-            <img 
-              src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=150&auto=format&fit=crop&q=80" 
-              alt="Riverside Water Body" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-                {currentStation?.name || 'Riverside Monitoring Station'}
-              </h2>
-              <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Online
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 mt-1">
-              {currentStation?.district || 'Riverside River'} • Latitude: <span className="font-mono text-slate-700">{currentStation?.latitude || 12.9716}</span> • Longitude: <span className="font-mono text-slate-700">{currentStation?.longitude || 77.5946}</span>
-            </p>
-          </div>
+      {/* Station Selector Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <button 
+            onClick={() => setActiveView('overview')}
+            className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-blue-600 transition mb-1"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Command Overview</span>
+          </button>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            Station Telemetry & Diagnostics
+          </h1>
         </div>
 
-        {/* View on Map Button */}
+        {/* Station Dropdown */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-slate-400">Select Station:</span>
+          <select
+            value={currentStation?.id}
+            onChange={(e) => setSelectedStationId(e.target.value)}
+            className="px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500"
+          >
+            {cityStations.map(s => (
+              <option key={s.id} value={s.id}>{s.name} ({s.district})</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Station Header Card */}
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+              {currentStation?.name}
+            </h2>
+            <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Telemetry Online
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            {currentStation?.district} • {currentStation?.city} • Latitude: <span className="font-mono">{currentStation?.latitude}</span> • Longitude: <span className="font-mono">{currentStation?.longitude}</span>
+          </p>
+        </div>
+
         <button 
           onClick={() => setActiveView('map')}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 transition shrink-0"
+          className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 transition shrink-0"
         >
-          <MapPin className="w-3.5 h-3.5 text-blue-600" />
-          <span>View on Map</span>
+          <MapPin className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+          <span>View on GIS Map</span>
         </button>
       </div>
 
-      {/* Sub-Navigation Tabs */}
-      <div className="border-b border-slate-200 flex items-center gap-6 text-xs font-semibold">
-        {subTabs.map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveSubTab(tab)}
-            className={`pb-3 transition relative ${
-              activeSubTab === tab 
-                ? 'text-blue-600 border-b-2 border-blue-600' 
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* 3 Main Cards Grid from Image 2 */}
+      {/* 3 Main Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Card 1: Current Readings Table (3.5 cols) */}
-        <div className="lg:col-span-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        {/* Card 1: Current Readings Table */}
+        <div className="lg:col-span-5 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 mb-4">Current Readings</h3>
-            <div className="divide-y divide-slate-100">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4">
+              Real-time Sensor Readings
+            </h3>
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {readings.map((r, i) => {
                 const Icon = r.icon;
                 return (
                   <div key={i} className="py-2.5 flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-2 text-slate-600 font-medium">
+                    <span className="flex items-center gap-2 text-slate-600 dark:text-slate-300 font-medium">
                       <Icon className="w-3.5 h-3.5 text-blue-500" />
                       {r.name}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold font-mono text-slate-900">{r.value}</span>
+                      <span className="font-bold font-mono text-slate-900 dark:text-slate-100">{r.value}</span>
                       <span className="text-[11px] text-slate-400 font-mono w-8">{r.unit}</span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800">
                         {r.status}
                       </span>
                     </div>
@@ -144,22 +136,21 @@ export default function StationDetailsView({ setActiveView }) {
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-400">
-            Last reading updated 4s ago via ESP32 telemetry
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 font-mono">
+            Direct IoT transmission via 4G/LoRa • Every 3 seconds
           </div>
         </div>
 
-        {/* Card 2: Circular WQI Gauge (3.5 cols) */}
-        <div className="lg:col-span-3 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col items-center justify-between text-center">
+        {/* Card 2: Cleanliness Score Gauge */}
+        <div className="lg:col-span-3 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col items-center justify-between text-center">
           <div className="w-full text-left">
-            <h3 className="text-sm font-bold text-slate-900">WQI</h3>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Cleanliness Score</h3>
           </div>
 
-          {/* Large Circular Gauge */}
           <div className="my-4 relative w-36 h-36 flex items-center justify-center">
             <svg className="w-36 h-36 transform -rotate-90" viewBox="0 0 36 36">
               <path
-                className="text-slate-100"
+                className="text-slate-100 dark:text-slate-800"
                 strokeWidth="3.2"
                 stroke="currentColor"
                 fill="none"
@@ -167,7 +158,7 @@ export default function StationDetailsView({ setActiveView }) {
               />
               <path
                 className="text-emerald-500"
-                strokeDasharray="86, 100"
+                strokeDasharray={`${wqiScore}, 100`}
                 strokeWidth="3.2"
                 strokeLinecap="round"
                 stroke="currentColor"
@@ -176,56 +167,55 @@ export default function StationDetailsView({ setActiveView }) {
               />
             </svg>
             <div className="absolute flex flex-col items-center">
-              <span className="text-3xl font-black font-mono text-slate-900">{wqiScore}</span>
-              <span className="text-xs font-bold text-emerald-600">Good</span>
+              <span className="text-3xl font-black font-mono text-slate-900 dark:text-slate-100">{wqiScore}%</span>
+              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Potable</span>
             </div>
           </div>
 
           <div className="w-full">
-            <p className="text-[11px] text-slate-500 mb-3">WQI based on WHO & BIS standards</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3">WHO & BIS Drinking Standard</p>
             <button 
-              onClick={() => setActiveView('risk')}
-              className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-blue-600 text-xs font-semibold rounded-xl border border-slate-200 transition"
+              onClick={() => setActiveView('reports')}
+              className="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 transition"
             >
-              View Details &gt;
+              Export Station Audit &gt;
             </button>
           </div>
         </div>
 
-        {/* Card 3: Real-time Trend Last 24 Hours (5 cols) */}
-        <div className="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+        {/* Card 3: Real-time Multi-line Trend */}
+        <div className="lg:col-span-4 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-bold text-slate-900">Real-time Trend</h3>
-            <span className="text-[11px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
-              Last 24 hours
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Live Trend</h3>
+            <span className="text-[11px] text-slate-400 bg-slate-50 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-mono">
+              24-Hour Cycle
             </span>
           </div>
 
-          {/* Parameter Legend */}
-          <div className="flex items-center gap-3 text-[11px] font-medium text-slate-500 mb-2">
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500"></span> pH</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"></span> Turbidity</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> TDS</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-500"></span> Temperature</span>
-          </div>
-
-          <div className="h-48 w-full">
+          <div className="h-48 w-full mt-2">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trendData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#1e293b' : '#f1f5f9'} />
                 <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} />
                 <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: '#0f172a', color: '#fff', borderRadius: '8px', fontSize: '11px' }} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: isDark ? '#0f172a' : '#fff', 
+                    color: isDark ? '#fff' : '#000', 
+                    borderRadius: '12px', 
+                    fontSize: '11px',
+                    borderColor: isDark ? '#334155' : '#e2e8f0'
+                  }} 
+                />
                 <Line type="monotone" dataKey="ph" stroke="#3b82f6" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="turbidity" stroke="#f59e0b" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="temp" stroke="#ef4444" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-            <span>Nominal Range: Optimal</span>
-            <span>Sensor Drift: None</span>
+          <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+            <span>Turbidity & pH Linearity</span>
+            <span className="text-emerald-500 font-bold">Stable</span>
           </div>
         </div>
 

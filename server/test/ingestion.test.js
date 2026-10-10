@@ -10,7 +10,7 @@ seedDatabaseIfEmpty(db);
 
 test('Validator: Rejects invalid or out-of-range payloads', () => {
   const invalid = {
-    station_id: 'STATION_RIVERSIDE_01',
+    station_id: 'TRICHY_KAVERI_01',
     ph: 19.5, // impossible pH
     turbidity_ntu: 'not-a-number'
   };
@@ -22,7 +22,7 @@ test('Validator: Rejects invalid or out-of-range payloads', () => {
 
 test('Ingestion Pipeline: Processes valid reading end-to-end', () => {
   const valid = {
-    station_id: 'STATION_RIVERSIDE_01',
+    station_id: 'TRICHY_KAVERI_01',
     ph: 7.35,
     turbidity_ntu: 2.1,
     do_mg_l: 7.8,

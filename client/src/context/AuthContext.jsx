@@ -13,7 +13,8 @@ export const DEMO_ACCOUNTS = [
     avatarBg: 'bg-blue-600',
     department: 'Central Water Authority & Engineering',
     defaultView: 'overview',
-    description: 'Full supervisory authority over telemetry, stations, risk mitigation, and automated alerts.'
+    description: 'Full supervisory authority: command center overview, live GIS mapping, threshold calibration, emergency valve overrides, and scenario simulation.',
+    allowedViews: ['overview', 'map', 'stations', 'alerts', 'telemetry', 'thresholds', 'hardware', 'simulation', 'reports']
   },
   {
     id: 'field_ops',
@@ -25,9 +26,10 @@ export const DEMO_ACCOUNTS = [
     roleLabel: 'Field Operations Lead',
     avatar: 'A',
     avatarBg: 'bg-emerald-600',
-    department: 'IoT Sensor Diagnostics & Edge Nodes',
+    department: 'IoT Edge Fleet & Telemetry Maintenance',
     defaultView: 'hardware',
-    description: 'Manages physical sensor nodes, calibration drifts, battery levels, and telemetry dispatch.'
+    description: 'Field maintenance authority: IoT edge sensor fleet, battery & signal diagnostics, probe recalibration logs, firmware downloads, and wiring specs.',
+    allowedViews: ['hardware', 'map', 'stations', 'alerts', 'telemetry']
   },
   {
     id: 'health_officer',
@@ -39,9 +41,10 @@ export const DEMO_ACCOUNTS = [
     roleLabel: 'Chief Public Health Officer',
     avatar: 'S',
     avatarBg: 'bg-amber-600',
-    department: 'Ministry of Public Health & Epidemiology',
-    defaultView: 'overview',
-    description: 'Reviews potability compliance, operational risk indexes, and authorizes public advisories.'
+    department: 'Directorate of Public Health & Epidemiology',
+    defaultView: 'health_advisories',
+    description: 'Health authority: authorizes and publishes official Boil Water Advisories, reviews WHO/BIS quality audits, investigates citizen incident complaints.',
+    allowedViews: ['health_advisories', 'overview', 'map', 'stations', 'alerts', 'reports']
   },
   {
     id: 'citizen',
@@ -53,67 +56,85 @@ export const DEMO_ACCOUNTS = [
     roleLabel: 'Citizen / Community Resident',
     avatar: 'P',
     avatarBg: 'bg-indigo-600',
-    department: 'Indiranagar, Ward 7, Bengaluru',
+    district: 'Rockfort & Thillai Nagar, Trichy',
+    department: 'Tiruchirappalli District, Tamil Nadu',
     defaultView: 'citizen_home',
-    description: 'Checks public tap water safety, reviews boil water notices, and submits local incident reports.'
+    description: 'Public community resident: checks live drinking water safety in your ward, views neighborhood GIS map, reads official advisories, and files water complaints.',
+    allowedViews: ['citizen_home', 'citizen_map', 'citizen_report', 'citizen_advisories', 'citizen_tracker']
   }
 ];
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  // Default to Municipal Engineer as seen in reference image
   const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('waterguard_user');
+    const saved = localStorage.getItem('waterguard_active_session');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.email) return parsed;
+      } catch (e) {}
     }
-    return DEMO_ACCOUNTS[0]; // R. Sharma - Municipal Engineer
+    return null; // Not logged in initially -> Enforces central login page!
   });
 
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [selectedCity, setSelectedCity] = useState(() => {
+    return localStorage.getItem('waterguard_city') || 'Trichy';
+  });
 
   useEffect(() => {
     if (currentUser) {
-      localStorage.setItem('waterguard_user', JSON.stringify(currentUser));
+      localStorage.setItem('waterguard_active_session', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('waterguard_active_session');
     }
   }, [currentUser]);
 
+  useEffect(() => {
+    localStorage.setItem('waterguard_city', selectedCity);
+  }, [selectedCity]);
+
+  // Strict Login function requiring valid credentials
   const login = (email, password) => {
+    if (!email || !password) {
+      return { success: false, error: 'Please enter both email and password.' };
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
     const matched = DEMO_ACCOUNTS.find(
-      u => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === password
+      u => u.email.toLowerCase() === trimmedEmail && u.password === password
     );
+
     if (matched) {
       setCurrentUser(matched);
-      setIsAuthModalOpen(false);
       return { success: true, user: matched };
     }
-    return { success: false, error: 'Invalid credentials. Please use one of the demo credentials below.' };
-  };
 
-  const switchRole = (roleId) => {
-    const user = DEMO_ACCOUNTS.find(u => u.id === roleId) || DEMO_ACCOUNTS[0];
-    setCurrentUser(user);
-    setIsAuthModalOpen(false);
+    return { 
+      success: false, 
+      error: 'Invalid credentials. Please enter a valid registered email and password.' 
+    };
   };
 
   const logout = () => {
-    // Switch to Citizen or prompt login
-    setCurrentUser(DEMO_ACCOUNTS[3]); // Fallback to citizen
-    setIsAuthModalOpen(true);
+    setCurrentUser(null);
+    localStorage.removeItem('waterguard_active_session');
   };
 
   return (
     <AuthContext.Provider value={{
       currentUser,
+      isAuthenticated: currentUser !== null,
       DEMO_ACCOUNTS,
+      selectedCity,
+      setSelectedCity,
       login,
-      switchRole,
       logout,
-      isAuthModalOpen,
-      setIsAuthModalOpen,
-      isAuthority: currentUser.role !== 'citizen',
-      isCitizen: currentUser.role === 'citizen'
+      isEngineer: currentUser?.role === 'engineer',
+      isFieldOps: currentUser?.role === 'field_ops',
+      isHealthOfficer: currentUser?.role === 'health_officer',
+      isCitizen: currentUser?.role === 'citizen',
+      isAuthority: currentUser && currentUser.role !== 'citizen'
     }}>
       {children}
     </AuthContext.Provider>
