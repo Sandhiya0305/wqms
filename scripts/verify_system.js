@@ -54,7 +54,7 @@ async function verify() {
 
     // 4. Ingest new reading
     const ingest = await post('/api/v1/telemetry', {
-      station_id: 'STATION_RIVER_01',
+      station_id: 'STATION_RIVERSIDE_01',
       ph: 7.3,
       turbidity_ntu: 2.1,
       do_mg_l: 7.9,

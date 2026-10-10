@@ -45,6 +45,19 @@ AquaIntel is a production-grade water quality monitoring, risk estimation, and p
 
 ---
 
+## 🔐 Mock Logins & Demo Credentials
+
+The platform includes a 1-click role switcher and mock authentication modal:
+
+| Role | Name & Title | Demo Email | Password | Default Portal |
+| :--- | :--- | :--- | :--- | :--- |
+| **Municipal Engineer** | **R. Sharma** (Municipal Engineer) | `engineer@waterguard.gov` | `admin123` | Authority Overview |
+| **Field Operations Lead** | **A. Kumar** (Field Operations Lead) | `fieldops@waterguard.gov` | `field123` | Hardware Setup |
+| **Chief Public Health Officer** | **Dr. S. Patel** (Chief Health Officer) | `health@waterguard.gov` | `health123` | Risk & Compliance |
+| **Citizen / Resident** | **Priya Sharma** (Community Resident) | `citizen@waterguard.org` | `citizen123` | Citizen Transparency Portal |
+
+---
+
 ## 🚀 Quickstart Guide
 
 ### Prerequisites

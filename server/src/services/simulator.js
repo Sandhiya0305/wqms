@@ -203,7 +203,7 @@ class SimulationEngine {
       let dTemp = (Math.random() - 0.5) * 0.1;
 
       // Apply Active Scenarios if triggered
-      if (this.activeScenarios.has('SPILL') && station.id === 'STATION_RIVER_01') {
+      if (this.activeScenarios.has('SPILL') && station.id === 'STATION_RIVERSIDE_01') {
         // Severe Acid Spill: pH plunges, TDS spikes
         dPh = -0.35;
         dTds = 35.0;
@@ -211,14 +211,14 @@ class SimulationEngine {
         dDo = -0.4;
       }
 
-      if (this.activeScenarios.has('RUNOFF') && station.id === 'STATION_RES_04') {
+      if (this.activeScenarios.has('RUNOFF') && station.id === 'STATION_EAST_03') {
         // Monsoon Runoff: Turbidity explodes, DO decreases
         dTurb = 6.0;
         dDo = -0.3;
         dTds = 15.0;
       }
 
-      if (this.activeScenarios.has('CHLORINE_DROP') && station.id === 'STATION_TAP_03') {
+      if (this.activeScenarios.has('CHLORINE_DROP') && station.id === 'STATION_WEST_04') {
         // Disinfection drop & contamination in tap grid
         dPh = 0.2;
         dTurb = 2.5;
@@ -255,11 +255,12 @@ class SimulationEngine {
     if (scenarioName === 'RESET') {
       this.activeScenarios.clear();
       // Reset station states to normal
-      this.stationStates.set('STATION_RIVER_01', { ph: 7.45, turbidity_ntu: 3.8, do_mg_l: 7.5, tds_ppm: 235, temp_c: 22.0, battery_pct: 94, signal_rssi: -62 });
-      this.stationStates.set('STATION_WTP_02', { ph: 7.20, turbidity_ntu: 0.8, do_mg_l: 8.2, tds_ppm: 175, temp_c: 21.0, battery_pct: 100, signal_rssi: -50 });
-      this.stationStates.set('STATION_TAP_03', { ph: 7.18, turbidity_ntu: 1.1, do_mg_l: 7.6, tds_ppm: 205, temp_c: 21.5, battery_pct: 88, signal_rssi: -68 });
-      this.stationStates.set('STATION_RES_04', { ph: 7.60, turbidity_ntu: 2.2, do_mg_l: 8.5, tds_ppm: 155, temp_c: 20.5, battery_pct: 92, signal_rssi: -74 });
-      this.stationStates.set('STATION_WELL_05', { ph: 7.05, turbidity_ntu: 0.5, do_mg_l: 5.3, tds_ppm: 375, temp_c: 23.0, battery_pct: 85, signal_rssi: -79 });
+      this.stationStates.set('STATION_RIVERSIDE_01', { ph: 7.45, turbidity_ntu: 3.2, do_mg_l: 8.1, tds_ppm: 142, temp_c: 24.8, battery_pct: 94, signal_rssi: -62 });
+      this.stationStates.set('STATION_NORTH_02', { ph: 7.20, turbidity_ntu: 0.8, do_mg_l: 8.3, tds_ppm: 165, temp_c: 23.5, battery_pct: 100, signal_rssi: -50 });
+      this.stationStates.set('STATION_EAST_03', { ph: 7.60, turbidity_ntu: 2.2, do_mg_l: 8.5, tds_ppm: 155, temp_c: 23.0, battery_pct: 91, signal_rssi: -70 });
+      this.stationStates.set('STATION_WEST_04', { ph: 7.15, turbidity_ntu: 1.1, do_mg_l: 7.8, tds_ppm: 195, temp_c: 24.0, battery_pct: 88, signal_rssi: -68 });
+      this.stationStates.set('STATION_CENTRAL_05', { ph: 7.20, turbidity_ntu: 0.8, do_mg_l: 8.3, tds_ppm: 165, temp_c: 23.5, battery_pct: 100, signal_rssi: -48 });
+      this.stationStates.set('STATION_SOUTH_06', { ph: 7.05, turbidity_ntu: 0.6, do_mg_l: 5.3, tds_ppm: 380, temp_c: 24.5, battery_pct: 86, signal_rssi: -76 });
     } else {
       this.activeScenarios.add(scenarioName);
     }

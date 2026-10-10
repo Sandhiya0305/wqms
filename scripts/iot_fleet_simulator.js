@@ -11,11 +11,12 @@ const HTTP_PORT = process.env.HTTP_PORT || 3001;
 const API_KEY = process.env.API_KEY || 'wq_device_token_demo_2026';
 
 const STATIONS = [
-  { id: 'STATION_RIVER_01', name: 'River Intake #1', basePh: 7.4, baseTurb: 4.0, baseDo: 7.5, baseTds: 240, baseTemp: 22.0 },
-  { id: 'STATION_WTP_02', name: 'Treatment Plant Effluent', basePh: 7.2, baseTurb: 0.8, baseDo: 8.2, baseTds: 180, baseTemp: 21.0 },
-  { id: 'STATION_TAP_03', name: 'Ward 7 Tap Network', basePh: 7.18, baseTurb: 1.1, baseDo: 7.6, baseTds: 210, baseTemp: 21.5 },
-  { id: 'STATION_RES_04', name: 'Highland Reservoir', basePh: 7.6, baseTurb: 2.3, baseDo: 8.4, baseTds: 160, baseTemp: 20.5 },
-  { id: 'STATION_WELL_05', name: 'Community Well', basePh: 7.05, baseTurb: 0.6, baseDo: 5.3, baseTds: 380, baseTemp: 23.0 }
+  { id: 'STATION_RIVERSIDE_01', name: 'Riverside Monitoring Station', basePh: 7.4, baseTurb: 3.2, baseDo: 8.1, baseTds: 142, baseTemp: 24.8 },
+  { id: 'STATION_NORTH_02', name: 'North Plant Monitoring Station', basePh: 7.2, baseTurb: 0.8, baseDo: 8.3, baseTds: 165, baseTemp: 23.5 },
+  { id: 'STATION_EAST_03', name: 'East Reservoir Station', basePh: 7.6, baseTurb: 2.2, baseDo: 8.5, baseTds: 155, baseTemp: 23.0 },
+  { id: 'STATION_WEST_04', name: 'West Tap Distribution Station', basePh: 7.15, baseTurb: 1.1, baseDo: 7.8, baseTds: 195, baseTemp: 24.0 },
+  { id: 'STATION_CENTRAL_05', name: 'Central WTP Monitoring Station', basePh: 7.2, baseTurb: 0.8, baseDo: 8.3, baseTds: 165, baseTemp: 23.5 },
+  { id: 'STATION_SOUTH_06', name: 'South Borewell Community Station', basePh: 7.05, baseTurb: 0.6, baseDo: 5.3, baseTds: 380, baseTemp: 24.5 }
 ];
 
 console.log('====================================================');
