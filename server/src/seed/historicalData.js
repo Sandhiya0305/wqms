@@ -8,8 +8,8 @@ const { estimateOperationalRisk } = require('../services/riskEngine');
 
 function seedDatabaseIfEmpty(db) {
   const existingStations = db.getStations();
-  if (existingStations.length > 0) {
-    console.log(`[Database] Database already seeded with ${existingStations.length} stations.`);
+  if (existingStations.length >= STATIONS.length) {
+    console.log(`[Database] Database already fully seeded with ${existingStations.length} stations.`);
     return;
   }
 

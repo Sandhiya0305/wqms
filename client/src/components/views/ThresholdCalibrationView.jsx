@@ -1,13 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
-  Sliders, 
-  ShieldAlert, 
   Check, 
-  RotateCcw, 
-  AlertTriangle, 
-  Power, 
-  Activity, 
-  SlidersHorizontal 
+  Power 
 } from 'lucide-react';
 import { useTelemetry } from '../../context/TelemetryContext';
 import { useAuth } from '../../context/AuthContext';
@@ -16,7 +10,7 @@ export default function ThresholdCalibrationView() {
   const { stations, selectedStationId, setSelectedStationId } = useTelemetry();
   const { selectedCity, currentUser } = useAuth();
 
-  const cityStations = stations.filter(s => s.city === selectedCity);
+  const cityStations = stations.filter(s => !selectedCity || s.city === selectedCity);
   const activeStation = cityStations.find(s => s.id === selectedStationId) || cityStations[0] || stations[0];
 
   const [thresholds, setThresholds] = useState({
@@ -43,7 +37,7 @@ export default function ThresholdCalibrationView() {
         })
       });
       setSavedFeedback(true);
-      setTimeout(() => setSavedFeedback(false), 3000);
+      setTimeout(() => setSavedFeedback(false), 2500);
     } catch (err) {
       console.error(err);
     }
@@ -63,103 +57,93 @@ export default function ThresholdCalibrationView() {
         })
       });
       setSavedFeedback(true);
-      setTimeout(() => setSavedFeedback(false), 3000);
+      setTimeout(() => setSavedFeedback(false), 2500);
     } catch (err) {
       console.error(err);
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 font-sans">
       
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header - Boxy */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-300 dark:border-slate-800 pb-3">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 border border-blue-500/20">
-              Municipal Engineering Authority
-            </span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight mt-1">
-            Threshold Calibration & Emergency Network Valves
+          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+            Municipal Engineer Control
+          </span>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+            Threshold Calibration & Valve Control
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Calibrate regulatory alarm triggers and operate emergency sluice gate valves for {selectedCity} water distribution.
-          </p>
         </div>
 
-        {/* Station Selector */}
+        {/* Station Selector - Boxy */}
         <div className="flex items-center gap-2">
-          <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Target Station:</label>
+          <label className="text-xs font-bold text-slate-500">Station:</label>
           <select
             value={activeStation?.id}
             onChange={(e) => setSelectedStationId(e.target.value)}
-            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-white rounded-xl px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-white px-2.5 py-1.5 focus:outline-none"
           >
             {cityStations.map(st => (
-              <option key={st.id} value={st.id}>{st.name} ({st.district})</option>
+              <option key={st.id} value={st.id}>{st.name}</option>
             ))}
           </select>
         </div>
       </div>
 
       {savedFeedback && (
-        <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
-          <Check className="w-4 h-4 shrink-0" />
-          <span>Operational parameters and valve commands successfully transmitted to station edge gateway.</span>
+        <div className="p-2.5 bg-blue-50 dark:bg-blue-950/40 border border-blue-300 dark:border-blue-800 text-blue-800 dark:text-blue-300 text-xs flex items-center gap-2">
+          <Check className="w-4 h-4 shrink-0 text-blue-600" />
+          <span>Parameters updated for {activeStation?.name}.</span>
         </div>
       )}
 
-      {/* Grid: Threshold Controls (Left) + Emergency Valve Override (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* Grid: Threshold Controls + Valve Controls - Boxy */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
-        {/* Left: Threshold Parameters Form */}
-        <div className="lg:col-span-7 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
-          <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              Regulatory Anomaly Alarm Limits
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Readings exceeding these ranges will automatically trigger high-severity alarms and alert operators.
-            </p>
-          </div>
+        {/* Left: Form */}
+        <div className="lg:col-span-7 bg-white dark:bg-slate-900 p-4 border border-slate-300 dark:border-slate-800 space-y-4">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-2">
+            Alarm Threshold Limits
+          </h2>
 
-          <form onSubmit={handleSave} className="space-y-4">
+          <form onSubmit={handleSave} className="space-y-3 text-xs">
             
             {/* pH Range */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-              <div className="flex justify-between items-center text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
-                <span>pH Permissible Range</span>
-                <span className="font-mono text-blue-600">{thresholds.ph_min} - {thresholds.ph_max} pH</span>
+            <div className="p-3 border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
+              <div className="flex justify-between font-bold text-slate-800 dark:text-slate-200 mb-2">
+                <span>pH Safe Range</span>
+                <span className="font-mono text-blue-600">{thresholds.ph_min} - {thresholds.ph_max}</span>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[11px] text-slate-400 block mb-1">Lower Floor Limit</label>
+                  <label className="text-[10px] text-slate-500 block mb-0.5">Min pH</label>
                   <input
                     type="number"
                     step="0.1"
                     value={thresholds.ph_min}
                     onChange={(e) => setThresholds({ ...thresholds, ph_min: parseFloat(e.target.value) })}
-                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white"
+                    className="w-full px-2 py-1 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] text-slate-400 block mb-1">Upper Ceiling Limit</label>
+                  <label className="text-[10px] text-slate-500 block mb-0.5">Max pH</label>
                   <input
                     type="number"
                     step="0.1"
                     value={thresholds.ph_max}
                     onChange={(e) => setThresholds({ ...thresholds, ph_max: parseFloat(e.target.value) })}
-                    className="w-full px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white"
+                    className="w-full px-2 py-1 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono"
                   />
                 </div>
               </div>
             </div>
 
             {/* Turbidity Max */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-              <div className="flex justify-between items-center text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
-                <span>Turbidity Alarm Threshold (WHO Max: 5.0 NTU)</span>
+            <div className="p-3 border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
+              <div className="flex justify-between font-bold text-slate-800 dark:text-slate-200 mb-1">
+                <span>Turbidity Ceiling Limit</span>
                 <span className="font-mono text-amber-600">{thresholds.turbidity_max} NTU</span>
               </div>
               <input
@@ -167,14 +151,14 @@ export default function ThresholdCalibrationView() {
                 step="0.5"
                 value={thresholds.turbidity_max}
                 onChange={(e) => setThresholds({ ...thresholds, turbidity_max: parseFloat(e.target.value) })}
-                className="w-full px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white"
+                className="w-full px-2 py-1 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono"
               />
             </div>
 
-            {/* Dissolved Oxygen Min */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-              <div className="flex justify-between items-center text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
-                <span>Minimum Healthy Dissolved Oxygen (Hypoxia Floor)</span>
+            {/* DO Min */}
+            <div className="p-3 border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
+              <div className="flex justify-between font-bold text-slate-800 dark:text-slate-200 mb-1">
+                <span>Dissolved Oxygen Floor Limit</span>
                 <span className="font-mono text-emerald-600">{thresholds.do_min} mg/L</span>
               </div>
               <input
@@ -182,14 +166,14 @@ export default function ThresholdCalibrationView() {
                 step="0.2"
                 value={thresholds.do_min}
                 onChange={(e) => setThresholds({ ...thresholds, do_min: parseFloat(e.target.value) })}
-                className="w-full px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white"
+                className="w-full px-2 py-1 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono"
               />
             </div>
 
             {/* TDS Max */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-              <div className="flex justify-between items-center text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">
-                <span>Total Dissolved Solids Permissible Limit</span>
+            <div className="p-3 border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
+              <div className="flex justify-between font-bold text-slate-800 dark:text-slate-200 mb-1">
+                <span>Total Dissolved Solids Max Limit</span>
                 <span className="font-mono text-purple-600">{thresholds.tds_max} ppm</span>
               </div>
               <input
@@ -197,92 +181,75 @@ export default function ThresholdCalibrationView() {
                 step="25"
                 value={thresholds.tds_max}
                 onChange={(e) => setThresholds({ ...thresholds, tds_max: parseFloat(e.target.value) })}
-                className="w-full px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold text-slate-900 dark:text-white"
+                className="w-full px-2 py-1 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition flex items-center justify-center gap-2"
+              className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs border border-blue-700 cursor-pointer"
             >
-              <Check className="w-4 h-4" />
-              <span>Apply Operational Threshold Calibration</span>
+              Save Operational Thresholds
             </button>
           </form>
         </div>
 
-        {/* Right: Emergency Valve Override Controls */}
-        <div className="lg:col-span-5 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Power className="w-5 h-5 text-rose-500" />
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">Emergency Valve Actuator</h3>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Direct physical command sent to motorized motorized intake sluice gates in <strong>{activeStation?.name}</strong>.
-            </p>
+        {/* Right: Emergency Valves */}
+        <div className="lg:col-span-5 bg-white dark:bg-slate-900 p-4 border border-slate-300 dark:border-slate-800 space-y-4">
+          <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+            <Power className="w-4 h-4 text-blue-600" />
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              Emergency Network Valve
+            </h2>
+          </div>
 
-            {/* Current Valve State Card */}
-            <div className={`mt-6 p-5 rounded-2xl border text-center ${
-              thresholds.valve_status === 'CLOSED'
-                ? 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
-                : thresholds.valve_status === 'THROTTLED'
-                ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
-                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+          <div className="p-4 border border-slate-300 dark:border-slate-700 text-center bg-slate-50 dark:bg-slate-950">
+            <span className="text-[10px] font-bold uppercase text-slate-500 block mb-1">Valve Status</span>
+            <div className={`text-xl font-bold font-mono ${
+              thresholds.valve_status === 'CLOSED' ? 'text-red-600' :
+              thresholds.valve_status === 'THROTTLED' ? 'text-amber-600' : 'text-emerald-600'
             }`}>
-              <span className="text-[11px] font-bold uppercase tracking-wider block mb-1">Current Actuator Status</span>
-              <div className="text-2xl font-black font-mono">
-                {thresholds.valve_status}
-              </div>
-              <p className="text-[11px] mt-1 opacity-80">
-                {thresholds.valve_status === 'CLOSED' ? 'Water intake completely halted to isolate contamination.' :
-                 thresholds.valve_status === 'THROTTLED' ? 'Intake flow throttled to 35% capacity for filter backwash.' :
-                 'Intake valve fully open for normal city supply.'}
-              </p>
-            </div>
-
-            {/* 3 State Toggle Buttons */}
-            <div className="mt-6 space-y-2.5">
-              <button
-                type="button"
-                onClick={() => handleValveToggle('OPEN')}
-                className={`w-full py-2.5 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-2 ${
-                  thresholds.valve_status === 'OPEN'
-                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-md'
-                    : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                }`}
-              >
-                <span>OPEN VALVE (Full Inflow)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleValveToggle('THROTTLED')}
-                className={`w-full py-2.5 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-2 ${
-                  thresholds.valve_status === 'THROTTLED'
-                    ? 'bg-amber-500 text-white border-amber-500 shadow-md'
-                    : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                }`}
-              >
-                <span>THROTTLE TO 35% (Cautionary Flow)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleValveToggle('CLOSED')}
-                className={`w-full py-2.5 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-2 ${
-                  thresholds.valve_status === 'CLOSED'
-                    ? 'bg-rose-600 text-white border-rose-600 shadow-md'
-                    : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                }`}
-              >
-                <span>EMERGENCY SHUTOFF (Close Inflow)</span>
-              </button>
+              {thresholds.valve_status}
             </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400">
-            Authorization: Municipal Engineer Level 3 Override
+          {/* Valve Buttons - Boxy */}
+          <div className="space-y-2 text-xs">
+            <button
+              type="button"
+              onClick={() => handleValveToggle('OPEN')}
+              className={`w-full py-2 font-bold border transition cursor-pointer ${
+                thresholds.valve_status === 'OPEN'
+                  ? 'bg-emerald-600 text-white border-emerald-700'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              OPEN VALVE (100% Inflow)
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleValveToggle('THROTTLED')}
+              className={`w-full py-2 font-bold border transition cursor-pointer ${
+                thresholds.valve_status === 'THROTTLED'
+                  ? 'bg-amber-600 text-white border-amber-700'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              THROTTLE VALVE (35% Capacity)
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleValveToggle('CLOSED')}
+              className={`w-full py-2 font-bold border transition cursor-pointer ${
+                thresholds.valve_status === 'CLOSED'
+                  ? 'bg-red-600 text-white border-red-700'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              EMERGENCY SHUTOFF (0% Flow)
+            </button>
           </div>
         </div>
 

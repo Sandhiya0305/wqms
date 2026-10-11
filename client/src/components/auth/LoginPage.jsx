@@ -10,15 +10,12 @@ import {
   ShieldCheck, 
   Sun, 
   Moon, 
-  User, 
-  ArrowRight, 
-  AlertCircle,
-  CheckCircle2,
-  MapPin
+  MapPin, 
+  AlertCircle 
 } from 'lucide-react';
 
 export default function LoginPage() {
-  const { login, DEMO_ACCOUNTS, selectedCity, setSelectedCity } = useAuth();
+  const { login, selectedCity, setSelectedCity } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   const [email, setEmail] = useState('');
@@ -26,14 +23,13 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedDemoHint, setSelectedDemoHint] = useState(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setErrorMsg('');
 
     if (!email.trim() || !password) {
-      setErrorMsg('Please enter both your email address and password.');
+      setErrorMsg('Please enter both email and password.');
       return;
     }
 
@@ -44,43 +40,36 @@ export default function LoginPage() {
       if (!res.success) {
         setErrorMsg(res.error);
       }
-    }, 400); // realistic authentication verification delay
-  };
-
-  const handleFillDemo = (acc) => {
-    setEmail(acc.email);
-    setPassword(acc.password);
-    setSelectedDemoHint(acc.id);
-    setErrorMsg('');
+    }, 200);
   };
 
   return (
-    <div className={`min-h-screen flex flex-col justify-between transition-colors duration-200 ${
-      theme === 'dark' ? 'bg-[#0B132B] text-slate-100' : 'bg-slate-50 text-slate-800'
+    <div className={`min-h-screen flex flex-col justify-between font-sans ${
+      theme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-900'
     }`}>
       
-      {/* Top Navbar */}
+      {/* Top Navbar - Boxy Blue & White */}
       <header className={`px-6 py-4 flex items-center justify-between border-b ${
-        theme === 'dark' ? 'border-slate-800 bg-[#0F1B38]' : 'border-slate-200 bg-white'
+        theme === 'dark' ? 'border-slate-800 bg-slate-900' : 'border-slate-300 bg-white'
       }`}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <Droplet className="w-6 h-6 text-white fill-white" />
+          <div className="w-8 h-8 bg-blue-600 flex items-center justify-center">
+            <Droplet className="w-5 h-5 text-white fill-white" />
           </div>
           <div>
-            <span className={`text-lg font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-              Water<span className="text-blue-600">Guard</span>
+            <span className="text-base font-bold tracking-tight text-blue-600">
+              WATERGUARD
             </span>
-            <span className="hidden sm:inline text-xs text-slate-400 ml-2 font-mono">
-              Public Water Quality & Risk Intelligence Platform
+            <span className="hidden sm:inline text-xs text-slate-500 ml-2 font-mono">
+              Water Quality Monitoring System
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* City selector on login page */}
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border ${
-            theme === 'dark' ? 'bg-slate-800 border-slate-700 text-slate-200' : 'bg-slate-100 border-slate-200 text-slate-700'
+          {/* City selector */}
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border ${
+            theme === 'dark' ? 'bg-slate-900 border-slate-700 text-slate-200' : 'bg-white border-slate-300 text-slate-700'
           }`}>
             <MapPin className="w-3.5 h-3.5 text-blue-600" />
             <select
@@ -88,20 +77,20 @@ export default function LoginPage() {
               onChange={(e) => setSelectedCity(e.target.value)}
               className="bg-transparent focus:outline-none cursor-pointer font-bold"
             >
-              <option value="Trichy" className="text-slate-900">Trichy, Tamil Nadu</option>
-              <option value="Chennai" className="text-slate-900">Chennai, Tamil Nadu</option>
-              <option value="Bengaluru" className="text-slate-900">Bengaluru, Karnataka</option>
-              <option value="Madurai" className="text-slate-900">Madurai, Tamil Nadu</option>
+              <option value="Trichy" className="text-slate-900">Trichy District</option>
+              <option value="Chennai" className="text-slate-900">Chennai</option>
+              <option value="Bengaluru" className="text-slate-900">Bengaluru</option>
+              <option value="Madurai" className="text-slate-900">Madurai</option>
             </select>
           </div>
 
           {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
-            className={`p-2 rounded-xl border transition ${
+            className={`p-2 border transition cursor-pointer ${
               theme === 'dark' 
                 ? 'bg-slate-800 border-slate-700 text-amber-400 hover:bg-slate-700' 
-                : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
+                : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'
             }`}
             title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
           >
@@ -110,113 +99,78 @@ export default function LoginPage() {
         </div>
       </header>
 
-      {/* Main Central Login Box */}
-      <main className="flex-1 flex items-center justify-center p-4 sm:p-8">
-        <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      {/* Main Login Card - Boxy */}
+      <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
+        <div className="w-full max-w-md">
           
-          {/* Left Column: Welcome & Info Banner */}
-          <div className="lg:col-span-5 space-y-5">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-600 border border-blue-500/20">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Verified Municipal Network</span>
-            </div>
-
-            <h1 className={`text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight ${
-              theme === 'dark' ? 'text-white' : 'text-slate-900'
-            }`}>
-              Continuous Drinking Water Quality & Operational Risk Intelligence
-            </h1>
-
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-              Serving citizens, public health officers, field maintenance crews, and municipal engineers across 
-              <strong className="text-blue-500"> {selectedCity} District</strong>.
-            </p>
-
-            <div className={`p-4 rounded-2xl border text-xs space-y-2 ${
-              theme === 'dark' ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
-            }`}>
-              <div className="flex items-center gap-2 text-emerald-500 font-semibold">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>WHO 4th Ed & BIS IS 10500 Compliant</span>
-              </div>
-              <div className="flex items-center gap-2 text-blue-500 font-semibold">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Sub-second IoT Edge Telemetry Streaming</span>
-              </div>
-              <div className="flex items-center gap-2 text-amber-500 font-semibold">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Automated Anomaly Detection & Triage</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Central Strict Sign-In Card */}
-          <div className={`lg:col-span-7 p-6 sm:p-8 rounded-3xl border shadow-xl transition-all ${
-            theme === 'dark' ? 'bg-[#0F1B38] border-slate-800' : 'bg-white border-slate-200 shadow-slate-200/50'
+          <div className={`border p-6 sm:p-8 ${
+            theme === 'dark' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-300 shadow-sm'
           }`}>
             
-            <div className="mb-6">
-              <h2 className={`text-xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                Sign In to WaterGuard
-              </h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Enter your registered credentials to access your role-authorized workspace.
+            <div className="border-b pb-4 mb-5 border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-2 mb-1">
+                <ShieldCheck className="w-5 h-5 text-blue-600" />
+                <h1 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+                  Account Sign In
+                </h1>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Enter your credentials to access the system.
               </p>
             </div>
 
-            {/* Error Message Alert */}
             {errorMsg && (
-              <div className="mb-4 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs font-medium flex items-start gap-2.5 animate-in fade-in">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/40 border border-red-300 dark:border-red-800 text-red-700 dark:text-red-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{errorMsg}</span>
               </div>
             )}
 
-            {/* Login Form with Strict Verification */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Login Form - Manual Entry */}
+            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               <div>
-                <label className={`block text-xs font-bold mb-1.5 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
-                  Work Email Address
+                <label className="block font-bold mb-1 text-slate-700 dark:text-slate-300">
+                  Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="email"
                     required
-                    placeholder="name@waterguard.gov"
+                    placeholder="e.g. engineer@waterguard.gov"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className={`w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
+                    className={`w-full pl-9 pr-3 py-2 border text-xs focus:outline-none focus:border-blue-600 ${
                       theme === 'dark'
-                        ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-500'
-                        : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'
+                        ? 'bg-slate-950 border-slate-700 text-white placeholder-slate-500'
+                        : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
                     }`}
                   />
                 </div>
               </div>
 
               <div>
-                <label className={`block text-xs font-bold mb-1.5 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
+                <label className="block font-bold mb-1 text-slate-700 dark:text-slate-300">
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
-                    placeholder="Enter your account password"
+                    placeholder="Enter password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className={`w-full text-xs pl-10 pr-10 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
+                    className={`w-full pl-9 pr-9 py-2 border text-xs focus:outline-none focus:border-blue-600 ${
                       theme === 'dark'
-                        ? 'bg-slate-900 border-slate-700 text-white placeholder-slate-500'
-                        : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'
+                        ? 'bg-slate-950 border-slate-700 text-white placeholder-slate-500'
+                        : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -226,44 +180,50 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition cursor-pointer border border-blue-700 disabled:opacity-50"
               >
-                {loading ? (
-                  <span>Verifying Credentials...</span>
-                ) : (
-                  <>
-                    <span>Sign In</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
+                {loading ? 'Verifying...' : 'Sign In'}
               </button>
             </form>
 
-            {/* Demo Accounts Directory with 1-click Quick Autofill */}
-            <div className="mt-6 pt-5 border-t border-slate-200/60 dark:border-slate-800">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2.5">
-                Quick Demo Credentials (Click to Autofill):
+            {/* Static Reference Table (Non-Clickable, No Autofill) */}
+            <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-2">
+                Available Accounts Reference:
               </span>
 
-              <div className="grid grid-cols-2 gap-2 text-left">
-                {DEMO_ACCOUNTS.map((acc) => (
-                  <button
-                    key={acc.id}
-                    type="button"
-                    onClick={() => handleFillDemo(acc)}
-                    className={`p-2.5 rounded-xl border text-left transition-all ${
-                      selectedDemoHint === acc.id
-                        ? 'border-blue-500 bg-blue-50/20 ring-1 ring-blue-500'
-                        : theme === 'dark'
-                        ? 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
-                        : 'border-slate-200 bg-slate-50 hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="text-[11px] font-bold text-blue-500 truncate">{acc.roleLabel}</div>
-                    <div className="text-[10px] text-slate-400 font-mono truncate">{acc.email}</div>
-                    <div className="text-[10px] text-slate-500 font-mono">Password: <strong className="text-slate-700 dark:text-slate-300">{acc.password}</strong></div>
-                  </button>
-                ))}
+              <div className="overflow-x-auto">
+                <table className="w-full text-[11px] text-left border border-slate-200 dark:border-slate-800">
+                  <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
+                    <tr>
+                      <th className="p-1.5">Role</th>
+                      <th className="p-1.5">Email</th>
+                      <th className="p-1.5">Password</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-mono text-slate-700 dark:text-slate-300">
+                    <tr>
+                      <td className="p-1.5 font-sans font-medium">Engineer</td>
+                      <td className="p-1.5">engineer@waterguard.gov</td>
+                      <td className="p-1.5">admin123</td>
+                    </tr>
+                    <tr>
+                      <td className="p-1.5 font-sans font-medium">Field Ops</td>
+                      <td className="p-1.5">fieldops@waterguard.gov</td>
+                      <td className="p-1.5">field123</td>
+                    </tr>
+                    <tr>
+                      <td className="p-1.5 font-sans font-medium">Health Officer</td>
+                      <td className="p-1.5">health@waterguard.gov</td>
+                      <td className="p-1.5">health123</td>
+                    </tr>
+                    <tr>
+                      <td className="p-1.5 font-sans font-medium">Citizen</td>
+                      <td className="p-1.5">citizen@waterguard.org</td>
+                      <td className="p-1.5">citizen123</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
@@ -273,10 +233,10 @@ export default function LoginPage() {
       </main>
 
       {/* Footer */}
-      <footer className={`py-4 px-6 text-center text-[11px] text-slate-400 border-t ${
-        theme === 'dark' ? 'border-slate-800 bg-[#0B132B]' : 'border-slate-200 bg-slate-50'
+      <footer className={`py-3 px-6 text-center text-xs border-t ${
+        theme === 'dark' ? 'border-slate-800 bg-slate-900 text-slate-400' : 'border-slate-300 bg-white text-slate-600'
       }`}>
-        WaterGuard Environmental Intelligence • Tiruchirappalli District Administration • Government of Tamil Nadu
+        WaterGuard Monitoring Platform • Tiruchirappalli District, Tamil Nadu
       </footer>
 
     </div>

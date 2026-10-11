@@ -2,13 +2,11 @@ import React, { useState } from 'react';
 import { 
   Play, 
   Pause, 
-  SlidersHorizontal, 
   CheckCircle2, 
   UploadCloud, 
   Bell, 
   AlertTriangle,
   Flame,
-  CloudRain,
   RotateCcw,
   Sparkles
 } from 'lucide-react';
@@ -24,7 +22,6 @@ export default function SimulationView() {
   } = useTelemetry();
   const { selectedCity } = useAuth();
 
-  const [activeSubTab, setActiveSubTab] = useState('Real-time Replay');
   const [selectedScenarioKey, setSelectedScenarioKey] = useState('SPILL');
   const [activeNotification, setActiveNotification] = useState(null);
 
@@ -35,22 +32,22 @@ export default function SimulationView() {
     { 
       id: 'SPILL', 
       label: 'Industrial Acid Runoff (Kaveri Intake / Srirangam)', 
-      description: 'pH plunges to 4.8 and chemical minerals spike at the Kaveri river intake.' 
+      description: 'pH drops to 4.8 and chemical minerals spike at the river intake.' 
     },
     { 
       id: 'RUNOFF', 
       label: 'Monsoon Silt Inflow (Kollidam River Basin)', 
-      description: 'Turbidity surges beyond 45 NTU due to heavy upstream monsoon soil runoff.' 
+      description: 'Turbidity exceeds 45 NTU due to heavy upstream soil runoff.' 
     },
     { 
       id: 'CHLORINE_DROP', 
       label: 'Disinfection Failure (Kambarasampettai WTP)', 
-      description: 'Chlorine residual drops to 0.05 mg/L, triggering automatic boil water alerts.' 
+      description: 'Chlorine residual drops to 0.05 mg/L, triggering boil water advisory.' 
     },
     { 
       id: 'RESET', 
       label: 'Normal Baseline (All Parameters Nominal)', 
-      description: 'Restores all sensors across the water grid to safe WHO drinking standards.' 
+      description: 'Restores all sensors across the water grid to safe WHO standards.' 
     },
   ];
 
@@ -75,22 +72,24 @@ export default function SimulationView() {
   return (
     <div className="space-y-6">
       
-      {/* Title & Subtitle */}
-      <div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 text-xs font-semibold mb-2">
-          <Flame className="w-3.5 h-3.5" />
-          <span>Stress Testing & Simulation Engine • {selectedCity}</span>
+      {/* Boxy Header */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-none p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs font-bold uppercase tracking-wider mb-2 border border-blue-200 dark:border-blue-800">
+            <Flame className="w-3.5 h-3.5 text-blue-600" />
+            <span>Stress Testing • {selectedCity}</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            Scenario Simulation & Stress Testing
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
+            Simulate chemical spills, storm runoff, and disinfection failures to verify automated alerts and emergency workflows.
+          </p>
         </div>
-        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-          Emergency Scenario Simulation & Stress Injection
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-          Simulate chemical spills, storm runoff, and disinfection failures to verify automated alerts and emergency shutoff procedures.
-        </p>
       </div>
 
       {activeNotification && (
-        <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+        <div className="p-3 rounded-none bg-blue-50 dark:bg-blue-950/60 border border-blue-300 dark:border-blue-800 text-blue-900 dark:text-blue-100 text-xs font-semibold flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
           <span>{activeNotification}</span>
         </div>
@@ -103,24 +102,24 @@ export default function SimulationView() {
         <div className="lg:col-span-6 space-y-6">
           
           {/* Card: Simulation Controls */}
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 space-y-4">
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Live Simulation Speed</h3>
 
             <div className="flex items-center gap-4">
               <button
                 onClick={toggleSimulation}
-                className="w-12 h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-lg shadow-blue-500/30 transition shrink-0 cursor-pointer"
+                className="w-12 h-12 rounded-none bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition shrink-0 cursor-pointer"
               >
                 {isRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
               </button>
 
               <div className="flex-1">
                 <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5 font-medium">
-                  <span className="font-semibold text-slate-900 dark:text-slate-100">{isRunning ? 'Simulator Active' : 'Simulation Paused'}</span>
-                  <span className="font-mono text-blue-600 dark:text-blue-400">Continuous Stream</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100">{isRunning ? 'Simulator Active' : 'Simulation Paused'}</span>
+                  <span className="font-mono text-blue-600 dark:text-blue-400 text-[11px]">Continuous Stream</span>
                 </div>
-                <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div className={`h-full bg-blue-600 rounded-full ${isRunning ? 'w-full animate-pulse' : 'w-1/2'}`}></div>
+                <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-none overflow-hidden">
+                  <div className={`h-full bg-blue-600 ${isRunning ? 'w-full animate-pulse' : 'w-1/2'}`}></div>
                 </div>
               </div>
 
@@ -128,7 +127,7 @@ export default function SimulationView() {
                 <select
                   value={currentSpeed}
                   onChange={(e) => setSimulationSpeed(Number(e.target.value))}
-                  className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-blue-500"
+                  className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 rounded-none px-3 py-2.5 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value={1}>1x Normal</option>
                   <option value={2}>2x Fast</option>
@@ -140,26 +139,26 @@ export default function SimulationView() {
           </div>
 
           {/* Card: Current Scenario Selector */}
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 space-y-4">
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Inject Synthetic Hazard Event</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Select a realistic emergency condition to test automated threshold alarms and health advisory workflows.
+              Select an emergency condition to test automated threshold alarms and health advisory workflows.
             </p>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               {scenarios.map(s => (
                 <div
                   key={s.id}
                   onClick={() => setSelectedScenarioKey(s.id)}
-                  className={`p-3.5 rounded-2xl border text-xs cursor-pointer transition ${
+                  className={`p-3.5 rounded-none border text-xs cursor-pointer transition ${
                     selectedScenarioKey === s.id
-                      ? 'border-blue-600 bg-blue-50/60 dark:bg-blue-950/40 text-blue-900 dark:text-blue-100 font-medium'
-                      : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                      ? 'border-blue-600 bg-blue-50/70 dark:bg-blue-950/40 text-blue-900 dark:text-blue-100 font-medium'
+                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700'
                   }`}
                 >
                   <div className="font-bold flex items-center justify-between">
                     <span>{s.label}</span>
-                    {selectedScenarioKey === s.id && <span className="w-2 h-2 rounded-full bg-blue-600"></span>}
+                    {selectedScenarioKey === s.id && <span className="w-2 h-2 rounded-none bg-blue-600"></span>}
                   </div>
                   <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{s.description}</div>
                 </div>
@@ -168,14 +167,14 @@ export default function SimulationView() {
               <div className="flex items-center gap-3 pt-2">
                 <button
                   onClick={handleApplyScenario}
-                  className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition cursor-pointer"
+                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-none transition cursor-pointer"
                 >
-                  Inject Synthetic Scenario Now
+                  Inject Synthetic Scenario
                 </button>
 
                 <button
                   onClick={handleReset}
-                  className="px-5 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                  className="px-4 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-none border border-slate-300 dark:border-slate-700 transition cursor-pointer flex items-center gap-1.5"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>Restore Safe</span>
@@ -190,49 +189,49 @@ export default function SimulationView() {
         <div className="lg:col-span-6 space-y-6">
           
           {/* Active Scenario Card */}
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Target Municipal Network</span>
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Target Municipal Network</span>
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="w-2.5 h-2.5 rounded-none bg-emerald-500 animate-pulse"></span>
               <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">{selectedCity} District Grid</h4>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Synthetic sensor packets stream into real SQLite database and WebSocket clients at 3-second intervals.
+              Synthetic sensor packets stream into database and WebSocket clients at 3-second intervals.
             </p>
           </div>
 
           {/* Data Flow Metrics (3 cards) */}
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3">
-            <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">IoT Stream Telemetry</h4>
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 space-y-3">
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">IoT Stream Telemetry</h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
               
-              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-none border border-slate-200 dark:border-slate-700 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-none bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="text-sm font-black font-mono text-slate-900 dark:text-slate-100">8 Nodes</div>
-                  <div className="text-[10px] text-slate-500 font-medium leading-tight">Active in {selectedCity}</div>
+                  <div className="text-[10px] text-slate-500 font-medium leading-tight">{selectedCity} Fleet</div>
                 </div>
               </div>
 
-              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-none border border-slate-200 dark:border-slate-700 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-none bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
                   <UploadCloud className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="text-sm font-black font-mono text-slate-900 dark:text-slate-100">160/min</div>
-                  <div className="text-[10px] text-slate-500 font-medium leading-tight">Packet Stream Rate</div>
+                  <div className="text-[10px] text-slate-500 font-medium leading-tight">Packet Stream</div>
                 </div>
               </div>
 
-              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-none border border-slate-200 dark:border-slate-700 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-none bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                   <Bell className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-sm font-black font-mono text-slate-900 dark:text-slate-100">Auto-Alerts</div>
-                  <div className="text-[10px] text-slate-500 font-medium leading-tight">Instant Thresholds</div>
+                  <div className="text-sm font-black font-mono text-slate-900 dark:text-slate-100">Active</div>
+                  <div className="text-[10px] text-slate-500 font-medium leading-tight">Threshold Alarms</div>
                 </div>
               </div>
 
@@ -240,13 +239,13 @@ export default function SimulationView() {
           </div>
 
           {/* Verification Directive */}
-          <div className="bg-slate-50 dark:bg-slate-800/60 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-700/60 text-xs text-slate-600 dark:text-slate-300 space-y-2">
+          <div className="bg-slate-50 dark:bg-slate-800/60 p-5 rounded-none border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 space-y-2">
             <div className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-500" />
-              <span>Simulated Scenario Reaction Loop:</span>
+              <span>Scenario Loop:</span>
             </div>
             <p className="leading-relaxed">
-              When an emergency scenario is injected, the IoT ingestion pipeline detects abnormal parameters, estimates operational risk, raises real-time alerts, and triggers citizen boil-water advisories across {selectedCity}.
+              When an emergency scenario is injected, the IoT pipeline detects abnormal parameters, estimates operational risk, raises real-time alerts, and triggers citizen boil-water advisories across {selectedCity}.
             </p>
           </div>
 

@@ -19,6 +19,27 @@ const schemaPath = path.join(__dirname, 'schema.sql');
 const schemaSql = fs.readFileSync(schemaPath, 'utf8');
 db.exec(schemaSql);
 
+// Column migrations for pre-existing databases
+try {
+  const stationCols = db.prepare('PRAGMA table_info(stations)').all().map(c => c.name);
+  if (!stationCols.includes('city')) {
+    db.exec("ALTER TABLE stations ADD COLUMN city TEXT NOT NULL DEFAULT 'Trichy';");
+  }
+  const reportCols = db.prepare('PRAGMA table_info(citizen_reports)').all().map(c => c.name);
+  if (!reportCols.includes('city')) {
+    db.exec("ALTER TABLE citizen_reports ADD COLUMN city TEXT NOT NULL DEFAULT 'Trichy';");
+  }
+  const telCols = db.prepare('PRAGMA table_info(telemetry)').all().map(c => c.name);
+  if (!telCols.includes('chlorine_mg_l')) {
+    db.exec("ALTER TABLE telemetry ADD COLUMN chlorine_mg_l REAL DEFAULT 0.5;");
+  }
+  if (!telCols.includes('nitrate_mg_l')) {
+    db.exec("ALTER TABLE telemetry ADD COLUMN nitrate_mg_l REAL DEFAULT 10.0;");
+  }
+} catch (migErr) {
+  console.warn('[Database Migration Notice]', migErr.message);
+}
+
 console.log(`[Database] SQLite database initialized at ${DB_PATH}`);
 
 // Helper methods

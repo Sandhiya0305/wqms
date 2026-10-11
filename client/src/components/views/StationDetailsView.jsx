@@ -1,14 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   ArrowLeft, 
   MapPin, 
-  CheckCircle2, 
   Droplet, 
   Thermometer, 
   Activity, 
   ShieldCheck, 
-  Zap, 
-  AlertTriangle 
+  Zap 
 } from 'lucide-react';
 import { useTelemetry } from '../../context/TelemetryContext';
 import { useAuth } from '../../context/AuthContext';
@@ -16,7 +14,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 export default function StationDetailsView({ setActiveView }) {
-  const { stations, selectedStationId, setSelectedStationId, latestTelemetry, stationHistories } = useTelemetry();
+  const { stations, selectedStationId, setSelectedStationId, latestTelemetry } = useTelemetry();
   const { selectedCity } = useAuth();
   const { isDark } = useTheme();
 
@@ -55,7 +53,7 @@ export default function StationDetailsView({ setActiveView }) {
         <div>
           <button 
             onClick={() => setActiveView('overview')}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-blue-600 transition mb-1"
+            className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-blue-600 transition mb-1 cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Command Overview</span>
@@ -67,11 +65,11 @@ export default function StationDetailsView({ setActiveView }) {
 
         {/* Station Dropdown */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-400">Select Station:</span>
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Select Station:</span>
           <select
             value={currentStation?.id}
             onChange={(e) => setSelectedStationId(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 rounded-none bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
           >
             {cityStations.map(s => (
               <option key={s.id} value={s.id}>{s.name} ({s.district})</option>
@@ -81,14 +79,14 @@ export default function StationDetailsView({ setActiveView }) {
       </div>
 
       {/* Station Header Card */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               {currentStation?.name}
             </h2>
-            <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Telemetry Online
+            <span className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-none border border-emerald-300 dark:border-emerald-800">
+              <span className="w-1.5 h-1.5 rounded-none bg-emerald-500 animate-pulse"></span> Telemetry Online
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -98,7 +96,7 @@ export default function StationDetailsView({ setActiveView }) {
 
         <button 
           onClick={() => setActiveView('map')}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-700 transition shrink-0"
+          className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-none border border-slate-300 dark:border-slate-700 transition shrink-0 cursor-pointer"
         >
           <MapPin className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
           <span>View on GIS Map</span>
@@ -109,9 +107,9 @@ export default function StationDetailsView({ setActiveView }) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Card 1: Current Readings Table */}
-        <div className="lg:col-span-5 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+        <div className="lg:col-span-5 bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
               Real-time Sensor Readings
             </h3>
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -119,14 +117,14 @@ export default function StationDetailsView({ setActiveView }) {
                 const Icon = r.icon;
                 return (
                   <div key={i} className="py-2.5 flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-2 text-slate-600 dark:text-slate-300 font-medium">
-                      <Icon className="w-3.5 h-3.5 text-blue-500" />
+                    <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-medium">
+                      <Icon className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                       {r.name}
                     </span>
                     <div className="flex items-center gap-2">
                       <span className="font-bold font-mono text-slate-900 dark:text-slate-100">{r.value}</span>
                       <span className="text-[11px] text-slate-400 font-mono w-8">{r.unit}</span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800">
+                      <span className="px-2 py-0.5 rounded-none text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                         {r.status}
                       </span>
                     </div>
@@ -136,15 +134,17 @@ export default function StationDetailsView({ setActiveView }) {
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 font-mono">
-            Direct IoT transmission via 4G/LoRa • Every 3 seconds
+          <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-400 font-mono">
+            Direct IoT transmission • 3-second intervals
           </div>
         </div>
 
         {/* Card 2: Cleanliness Score Gauge */}
-        <div className="lg:col-span-3 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col items-center justify-between text-center">
+        <div className="lg:col-span-3 bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-between text-center">
           <div className="w-full text-left">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Cleanliness Score</h3>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 pb-2 border-b border-slate-200 dark:border-slate-800">
+              Cleanliness Score
+            </h3>
           </div>
 
           <div className="my-4 relative w-36 h-36 flex items-center justify-center">
@@ -160,7 +160,7 @@ export default function StationDetailsView({ setActiveView }) {
                 className="text-emerald-500"
                 strokeDasharray={`${wqiScore}, 100`}
                 strokeWidth="3.2"
-                strokeLinecap="round"
+                strokeLinecap="butt"
                 stroke="currentColor"
                 fill="none"
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -176,18 +176,18 @@ export default function StationDetailsView({ setActiveView }) {
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3">WHO & BIS Drinking Standard</p>
             <button 
               onClick={() => setActiveView('reports')}
-              className="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 transition"
+              className="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-none border border-slate-300 dark:border-slate-700 transition cursor-pointer"
             >
-              Export Station Audit &gt;
+              Export Station Audit
             </button>
           </div>
         </div>
 
         {/* Card 3: Real-time Multi-line Trend */}
-        <div className="lg:col-span-4 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
+        <div className="lg:col-span-4 bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200 dark:border-slate-800">
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Live Trend</h3>
-            <span className="text-[11px] text-slate-400 bg-slate-50 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-mono">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 px-2 py-0.5 rounded-none border border-slate-200 dark:border-slate-700 font-mono">
               24-Hour Cycle
             </span>
           </div>
@@ -202,20 +202,20 @@ export default function StationDetailsView({ setActiveView }) {
                   contentStyle={{ 
                     backgroundColor: isDark ? '#0f172a' : '#fff', 
                     color: isDark ? '#fff' : '#000', 
-                    borderRadius: '12px', 
+                    borderRadius: '0px', 
                     fontSize: '11px',
-                    borderColor: isDark ? '#334155' : '#e2e8f0'
+                    borderColor: isDark ? '#334155' : '#cbd5e1'
                   }} 
                 />
-                <Line type="monotone" dataKey="ph" stroke="#3b82f6" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="turbidity" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="ph" stroke="#2563eb" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="turbidity" stroke="#d97706" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+          <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-mono">
             <span>Turbidity & pH Linearity</span>
-            <span className="text-emerald-500 font-bold">Stable</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-bold">Stable</span>
           </div>
         </div>
 

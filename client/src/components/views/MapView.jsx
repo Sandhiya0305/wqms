@@ -2,7 +2,7 @@ import React from 'react';
 import StationMap from '../authority/StationMap';
 import { useTelemetry } from '../../context/TelemetryContext';
 import { useAuth } from '../../context/AuthContext';
-import { MapPin, ShieldCheck, AlertTriangle, Layers } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 
 export default function MapView({ setActiveView }) {
   const { stations, latestTelemetry } = useTelemetry();
@@ -26,33 +26,30 @@ export default function MapView({ setActiveView }) {
   }).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 font-sans">
       
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Header - Boxy */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-300 dark:border-slate-800 pb-3">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 text-xs font-semibold mb-2">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-0.5">
             <MapPin className="w-3.5 h-3.5" />
-            <span>GIS Water Grid • {selectedCity}</span>
+            <span>GIS Map • {selectedCity}</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            Live Water Quality GIS Map
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+            Geospatial Sensor Network
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Geospatial sensor nodes positioned across river intakes, treatment plants, and urban neighborhood tap networks.
-          </p>
         </div>
 
-        {/* City Switcher Quick Pills */}
-        <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl text-xs font-semibold">
+        {/* City Switcher - Boxy */}
+        <div className="flex items-center border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold">
           {['Trichy', 'Chennai', 'Bengaluru', 'Madurai'].map(city => (
             <button
               key={city}
               onClick={() => setSelectedCity(city)}
-              className={`px-3 py-1.5 rounded-xl transition ${
+              className={`px-3 py-1.5 transition cursor-pointer border-r last:border-r-0 border-slate-300 dark:border-slate-700 ${
                 selectedCity === city
-                  ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-blue-600 text-white font-bold'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               {city}
@@ -61,35 +58,35 @@ export default function MapView({ setActiveView }) {
         </div>
       </div>
 
-      {/* Station Summary Metrics Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Monitored Stations</div>
-          <div className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1">{cityStations.length}</div>
-          <div className="text-[11px] text-slate-400 mt-0.5">In {selectedCity} District</div>
+      {/* Station Summary Metrics - Boxy */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-white dark:bg-slate-900 p-3 border border-slate-300 dark:border-slate-800">
+          <div className="text-xs text-slate-500 font-bold uppercase">Stations</div>
+          <div className="text-xl font-bold font-mono text-slate-900 dark:text-white mt-0.5">{cityStations.length}</div>
+          <div className="text-[10px] text-slate-400 font-mono">{selectedCity} Network</div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Safe Drinking Tap Zones</div>
-          <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{safeCount}</div>
-          <div className="text-[11px] text-emerald-600 dark:text-emerald-400/80 mt-0.5">WQI &lt; 50 (Potable)</div>
+        <div className="bg-white dark:bg-slate-900 p-3 border border-slate-300 dark:border-slate-800">
+          <div className="text-xs text-emerald-600 font-bold uppercase">Safe / Potable</div>
+          <div className="text-xl font-bold font-mono text-emerald-600 mt-0.5">{safeCount}</div>
+          <div className="text-[10px] text-emerald-600 font-mono">WQI &lt; 50</div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Moderate / Caution</div>
-          <div className="text-xl font-bold text-amber-600 dark:text-amber-400 mt-1">{cautionCount}</div>
-          <div className="text-[11px] text-amber-600 dark:text-amber-400/80 mt-0.5">Filter Advised</div>
+        <div className="bg-white dark:bg-slate-900 p-3 border border-slate-300 dark:border-slate-800">
+          <div className="text-xs text-amber-600 font-bold uppercase">Filter Advised</div>
+          <div className="text-xl font-bold font-mono text-amber-600 mt-0.5">{cautionCount}</div>
+          <div className="text-[10px] text-amber-600 font-mono">WQI 50-75</div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Active Boil Advisories</div>
-          <div className="text-xl font-bold text-rose-600 dark:text-rose-400 mt-1">{criticalCount}</div>
-          <div className="text-[11px] text-rose-600 dark:text-rose-400/80 mt-0.5">High Turbidity / Runoff</div>
+        <div className="bg-white dark:bg-slate-900 p-3 border border-slate-300 dark:border-slate-800">
+          <div className="text-xs text-red-600 font-bold uppercase">Boil Water</div>
+          <div className="text-xl font-bold font-mono text-red-600 mt-0.5">{criticalCount}</div>
+          <div className="text-[10px] text-red-600 font-mono">WQI &gt; 75</div>
         </div>
       </div>
 
-      {/* Embedded Leaflet Map */}
-      <div className="bg-white dark:bg-slate-900 p-2 sm:p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+      {/* Map Container - Boxy */}
+      <div className="bg-white dark:bg-slate-900 p-2 border border-slate-300 dark:border-slate-800">
         <StationMap />
       </div>
 

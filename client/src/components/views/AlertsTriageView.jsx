@@ -2,16 +2,10 @@ import React, { useState } from 'react';
 import { 
   Search, 
   Filter, 
-  Calendar, 
   SlidersHorizontal, 
   Check, 
   AlertTriangle, 
   AlertOctagon, 
-  ChevronLeft, 
-  ChevronRight,
-  Send,
-  Eye,
-  CheckCircle2,
   Bell
 } from 'lucide-react';
 import { useTelemetry } from '../../context/TelemetryContext';
@@ -30,7 +24,6 @@ export default function AlertsTriageView({ setActiveView }) {
   const cityStationIds = new Set(cityStations.map(s => s.id));
 
   const displayAlerts = activeAlerts.filter(a => {
-    // If station in city or alert mentions city
     const inCity = cityStationIds.has(a.station_id) || a.station_id?.startsWith(selectedCity.toUpperCase());
     if (!inCity && cityStations.length > 0) return false;
 
@@ -63,25 +56,25 @@ export default function AlertsTriageView({ setActiveView }) {
   return (
     <div className="space-y-6">
       
-      {/* Title & Top Right Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Boxy Header */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-none p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 text-xs font-semibold mb-2">
-            <Bell className="w-3.5 h-3.5" />
-            <span>Incident Management • {selectedCity}</span>
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs font-bold uppercase tracking-wider mb-2 border border-blue-200 dark:border-blue-800">
+            <Bell className="w-3.5 h-3.5 text-blue-600" />
+            <span>Incident Triage • {selectedCity}</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             Water Quality Alerts & Incident Triage
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-            Automated sensor anomalies and threshold violation tickets in {selectedCity}
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
+            Sensor anomalies and threshold violation tickets logged across {selectedCity}.
           </p>
         </div>
 
         {isEngineer && (
           <button
             onClick={() => setActiveView('thresholds')}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md transition self-start sm:self-auto cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-none transition self-start sm:self-auto cursor-pointer"
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span>Calibrate Thresholds</span>
@@ -90,7 +83,7 @@ export default function AlertsTriageView({ setActiveView }) {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="bg-white dark:bg-slate-900 p-4 rounded-none border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         
         {/* Search Input */}
         <div className="relative flex-1">
@@ -100,7 +93,7 @@ export default function AlertsTriageView({ setActiveView }) {
             placeholder="Search alerts, parameters or stations..."
             value={searchParam}
             onChange={(e) => setSearchParam(e.target.value)}
-            className="w-full bg-slate-50 dark:bg-slate-800 pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 font-medium"
+            className="w-full bg-white dark:bg-slate-800 pl-10 pr-4 py-2 rounded-none border border-slate-300 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 font-medium"
           />
         </div>
 
@@ -109,7 +102,7 @@ export default function AlertsTriageView({ setActiveView }) {
           <select 
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value)}
-            className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500"
+            className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 rounded-none px-3 py-2 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="ALL">All Severities</option>
             <option value="CRITICAL">Critical Only</option>
@@ -121,17 +114,17 @@ export default function AlertsTriageView({ setActiveView }) {
       </div>
 
       {/* Alerts Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-none border border-slate-200 dark:border-slate-800 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               <tr>
-                <th className="py-3 px-6">Alert Headline</th>
+                <th className="py-3 px-4">Alert Headline</th>
                 <th className="py-3 px-4">Station ID</th>
                 <th className="py-3 px-4">Severity</th>
                 <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4">Timestamp</th>
-                <th className="py-3 px-6 text-right">Actions</th>
+                <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -143,62 +136,62 @@ export default function AlertsTriageView({ setActiveView }) {
                 </tr>
               ) : (
                 displayAlerts.map((row) => {
-                  let sevBg = 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800';
-                  if (row.severity === 'CRITICAL') sevBg = 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800';
-                  if (row.severity === 'INFO') sevBg = 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800';
+                  let sevBg = 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800';
+                  if (row.severity === 'CRITICAL') sevBg = 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800';
+                  if (row.severity === 'INFO') sevBg = 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-800';
 
                   const st = stations.find(s => s.id === row.station_id);
 
                   return (
                     <tr key={row.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition">
-                      <td className="py-4 px-6">
+                      <td className="py-3.5 px-4">
                         <div className="font-bold text-slate-900 dark:text-slate-100">{row.title}</div>
                         <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{row.description}</div>
                       </td>
 
-                      <td className="py-4 px-4 font-mono font-semibold text-slate-700 dark:text-slate-300">
+                      <td className="py-3.5 px-4 font-mono font-semibold text-slate-700 dark:text-slate-300">
                         <div>{row.station_id}</div>
                         <div className="text-[10px] text-slate-400 font-sans">{st?.district || st?.name}</div>
                       </td>
 
-                      <td className="py-4 px-4">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${sevBg}`}>
-                          <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+                      <td className="py-3.5 px-4">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-none text-[10px] font-bold border ${sevBg}`}>
+                          <span className="w-1.5 h-1.5 rounded-none bg-current"></span>
                           {row.severity}
                         </span>
                       </td>
 
-                      <td className="py-4 px-4">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      <td className="py-3.5 px-4">
+                        <span className={`px-2 py-0.5 rounded-none text-[10px] font-bold border ${
                           row.status === 'RESOLVED' 
-                            ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800' 
+                            ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800' 
                             : row.status === 'ACKNOWLEDGED'
-                            ? 'bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800'
-                            : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 animate-pulse'
+                            ? 'bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800'
+                            : 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 animate-pulse'
                         }`}>
                           {row.status}
                         </span>
                       </td>
 
-                      <td className="py-4 px-4 font-mono text-slate-400 text-[11px]">
+                      <td className="py-3.5 px-4 font-mono text-slate-400 text-[11px]">
                         {new Date(row.created_at || Date.now()).toLocaleTimeString()}
                       </td>
 
-                      <td className="py-4 px-6 text-right">
+                      <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           {row.status !== 'RESOLVED' && (
                             <>
                               {row.status !== 'ACKNOWLEDGED' && (
                                 <button
                                   onClick={() => handleActionClick(row, 'ACKNOWLEDGE')}
-                                  className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-lg border border-slate-200 dark:border-slate-700 text-[11px] shadow-sm transition"
+                                  className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-none border border-slate-300 dark:border-slate-700 text-[11px] transition cursor-pointer"
                                 >
                                   Acknowledge
                                 </button>
                               )}
                               <button
                                 onClick={() => handleActionClick(row, 'RESOLVE')}
-                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[11px] shadow-sm transition"
+                                className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-none text-[11px] transition cursor-pointer"
                               >
                                 Resolve
                               </button>
@@ -217,25 +210,25 @@ export default function AlertsTriageView({ setActiveView }) {
 
       {/* Confirmation Modal */}
       {activeModalAction && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-none max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 space-y-4">
             <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
-              Confirm Incident Action: {activeModalAction.actionName}
+              Confirm Action: {activeModalAction.actionName}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              You are updating incident: <strong>{activeModalAction.title}</strong> at {activeModalAction.station_id}.
+              You are updating incident ticket: <strong>{activeModalAction.title}</strong> at {activeModalAction.station_id}.
             </p>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
               <button 
                 onClick={() => setActiveModalAction(null)}
-                className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+                className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-none border border-slate-300 dark:border-slate-700 cursor-pointer"
               >
                 Cancel
               </button>
               <button 
                 onClick={confirmAction}
-                className="px-4 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md transition"
+                className="px-4 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-none transition cursor-pointer"
               >
                 Confirm
               </button>
