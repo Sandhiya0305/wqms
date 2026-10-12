@@ -43,7 +43,7 @@ export default function LoginModal() {
             </div>
             <div>
               <h2 className="text-xl font-bold tracking-tight">WaterGuard Authentication</h2>
-              <p className="text-xs text-blue-200 mt-0.5">Switch role or sign in with demo credentials</p>
+              
             </div>
           </div>
         </div>
@@ -109,9 +109,7 @@ export default function LoginModal() {
 
           <div className="relative flex items-center justify-center">
             <div className="border-t border-slate-200 w-full" />
-            <span className="bg-white px-3 text-xs font-medium text-slate-400 uppercase tracking-wider absolute">
-              Or Sign In With Credentials
-            </span>
+            
           </div>
 
           {/* Manual Login Form */}

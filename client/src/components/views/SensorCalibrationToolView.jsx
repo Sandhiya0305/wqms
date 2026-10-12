@@ -304,7 +304,7 @@ export default function SensorCalibrationToolView({ setActiveView }) {
 
             <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1 border-t border-slate-200 dark:border-slate-800 pt-3">
               <div><strong>Firmware Version:</strong> v2.8.4-RTOS (OTA Active)</div>
-              <div><strong>Telemetry Cycle:</strong> 3-second live sensor packet transmit</div>
+              <div><strong>Telemetry Cycle:</strong></div>
               <div><strong>Scheduled Probe Service:</strong> In 14 days</div>
             </div>
           </div>

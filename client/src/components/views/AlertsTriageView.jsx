@@ -18,12 +18,25 @@ export default function AlertsTriageView({ setActiveView }) {
   const [searchParam, setSearchParam] = useState('');
   const [severityFilter, setSeverityFilter] = useState('ALL');
   const [activeModalAction, setActiveModalAction] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [sortBy, setSortBy] = useState('created_at');
+  const [sortDir, setSortDir] = useState('desc');
+
+  const handleSortChange = (key) => {
+    if (sortBy === key) {
+      setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(key);
+      setSortDir('desc');
+    }
+  };
 
   // Filter alerts by current city
   const cityStations = stations.filter(s => !selectedCity || s.city === selectedCity);
   const cityStationIds = new Set(cityStations.map(s => s.id));
 
-  const displayAlerts = activeAlerts.filter(a => {
+  const filteredAlerts = activeAlerts.filter(a => {
     const inCity = cityStationIds.has(a.station_id) || a.station_id?.startsWith(selectedCity.toUpperCase());
     if (!inCity && cityStations.length > 0) return false;
 
@@ -38,6 +51,18 @@ export default function AlertsTriageView({ setActiveView }) {
     }
     return true;
   });
+
+  const sortedAlerts = [...filteredAlerts].sort((a, b) => {
+    const aVal = a[sortBy]?.toString() || '';
+    const bVal = b[sortBy]?.toString() || '';
+    if (sortDir === 'desc') return aVal < bVal ? 1 : -1;
+    return aVal > bVal ? 1 : -1;
+  });
+
+  const startIdx = (page - 1) * pageSize;
+  const endIdx = startIdx + pageSize;
+  const pagedAlerts = sortedAlerts.slice(startIdx, endIdx);
+  const totalPages = Math.ceil(filteredAlerts.length / pageSize) || 1;
 
   const handleActionClick = (alertItem, actionName) => {
     setActiveModalAction({ ...alertItem, actionName });
@@ -119,23 +144,35 @@ export default function AlertsTriageView({ setActiveView }) {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               <tr>
-                <th className="py-3 px-4">Alert Headline</th>
-                <th className="py-3 px-4">Station ID</th>
-                <th className="py-3 px-4">Severity</th>
-                <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4 cursor-pointer" onClick={() => handleSortChange('title')}>
+                  Alert Headline
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 ml-1">{sortBy === 'title' ? (sortDir === 'asc' ? '▲' : '▼') : ''}</span>
+                </th>
+                <th className="py-3 px-4 cursor-pointer" onClick={() => handleSortChange('station_id')}>
+                  Station ID
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 ml-1">{sortBy === 'station_id' ? (sortDir === 'asc' ? '▲' : '▼') : ''}</span>
+                </th>
+                <th className="py-3 px-4 cursor-pointer" onClick={() => handleSortChange('severity')}>
+                  Severity
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 ml-1">{sortBy === 'severity' ? (sortDir === 'asc' ? '▲' : '▼') : ''}</span>
+                </th>
+                <th className="py-3 px-4 cursor-pointer" onClick={() => handleSortChange('status')}>
+                  Status
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 ml-1">{sortBy === 'status' ? (sortDir === 'asc' ? '▲' : '▼') : ''}</span>
+                </th>
                 <th className="py-3 px-4">Timestamp</th>
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {displayAlerts.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="py-12 text-center text-slate-400 text-xs">
-                    No active incident alerts for {selectedCity}. All drinking water parameters are nominal.
-                  </td>
-                </tr>
-              ) : (
-                displayAlerts.map((row) => {
+{pagedAlerts.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="py-12 text-center text-slate-400 text-xs">
+                      No active incident alerts for {selectedCity}. All drinking water parameters are nominal.
+                    </td>
+                  </tr>
+                ) : (
+                pagedAlerts.map((row) => {
                   let sevBg = 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800';
                   if (row.severity === 'CRITICAL') sevBg = 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800';
                   if (row.severity === 'INFO') sevBg = 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-800';
@@ -208,7 +245,30 @@ export default function AlertsTriageView({ setActiveView }) {
         </div>
       </div>
 
-      {/* Confirmation Modal */}
+        {/* Pagination Controls */}
+        <div className="mt-4 flex items-center justify-between">
+          <div className="text-xs text-slate-500 dark:text-slate-400">
+            Showing {startIdx > 0 ? startIdx + 1 : 1} to {endIdx > pagedAlerts.length ? pagedAlerts.length : endIdx} of {filteredAlerts.length} alerts
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage(prev => prev > 1 ? prev - 1 : 1)}
+              disabled={page === 1}
+              className="px-3 py-1.5 rounded-none text-[10px] font-bold text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              Prev
+            </button>
+            <button
+              onClick={() => setPage(prev => prev < totalPages ? prev + 1 : totalPages)}
+              disabled={page === totalPages}
+              className="px-3 py-1.5 rounded-none text-[10px] font-bold text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+
+        {/* Confirmation Modal */}
       {activeModalAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 rounded-none max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 space-y-4">

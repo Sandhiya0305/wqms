@@ -103,16 +103,6 @@ export default function Header({ searchQuery, setSearchQuery }) {
             </div>
           </div>
 
-          {/* Logout Button */}
-          <button
-            onClick={logout}
-            title="Log Out"
-            className="p-1 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
-        </div>
-
       </div>
     </header>
   );

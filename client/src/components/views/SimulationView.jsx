@@ -142,7 +142,7 @@ export default function SimulationView() {
           <div className="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 space-y-4">
             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Inject Synthetic Hazard Event</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Select an emergency condition to test automated threshold alarms and health advisory workflows.
+
             </p>
 
             <div className="space-y-2">
@@ -196,8 +196,6 @@ export default function SimulationView() {
               <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">{selectedCity} District Grid</h4>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Synthetic sensor packets stream into database and WebSocket clients at 3-second intervals.
-            </p>
           </div>
 
           {/* Data Flow Metrics (3 cards) */}

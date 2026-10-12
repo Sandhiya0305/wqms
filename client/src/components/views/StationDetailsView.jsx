@@ -135,8 +135,6 @@ export default function StationDetailsView({ setActiveView }) {
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-400 font-mono">
-            Direct IoT transmission • 3-second intervals
-          </div>
         </div>
 
         {/* Card 2: Cleanliness Score Gauge */}
