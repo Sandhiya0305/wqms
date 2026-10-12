@@ -4,6 +4,23 @@ import { useTelemetry } from '../../context/TelemetryContext';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 
+const MAP_API_KEY = import.meta.env.VITE_MAP_API_KEY || '';
+const TILE_URL_TEMPLATE = import.meta.env.VITE_MAP_TILE_URL || '';
+
+// Keyless default basemaps (prerasterized, key auth via {key} when TILE_URL is keyless-independent)
+const DEFAULT_TILES = {
+  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  light: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+};
+
+// Build the tile URL: keyed provider via env, else CARTO fallback
+function buildTileUrl(isDark) {
+  if (TILE_URL_TEMPLATE && MAP_API_KEY) {
+    return TILE_URL_TEMPLATE.replace('{key}', MAP_API_KEY);
+  }
+  return isDark ? DEFAULT_TILES.dark : DEFAULT_TILES.light;
+}
+
 const CITY_COORDINATES = {
   Trichy: { center: [10.8280, 78.6960], zoom: 13 },
   Chennai: { center: [13.0400, 80.2000], zoom: 12 },
@@ -35,13 +52,11 @@ export default function StationMap() {
       attributionControl: false
     });
 
-    const tileUrl = isDark 
-      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-      : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    const tileUrl = buildTileUrl(isDark);
 
     const tileLayer = L.tileLayer(tileUrl, {
       maxZoom: 19,
-      subdomains: 'abcd'
+      subdomains: TILE_URL_TEMPLATE && MAP_API_KEY ? '' : 'abcd'
     }).addTo(map);
 
     tileLayerRef.current = tileLayer;
@@ -62,13 +77,11 @@ export default function StationMap() {
       map.removeLayer(tileLayerRef.current);
     }
 
-    const tileUrl = isDark 
-      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-      : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    const tileUrl = buildTileUrl(isDark);
 
     const newTileLayer = L.tileLayer(tileUrl, {
       maxZoom: 19,
-      subdomains: 'abcd'
+      subdomains: TILE_URL_TEMPLATE && MAP_API_KEY ? '' : 'abcd'
     }).addTo(map);
 
     tileLayerRef.current = newTileLayer;

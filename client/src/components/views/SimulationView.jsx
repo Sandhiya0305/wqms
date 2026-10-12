@@ -196,6 +196,8 @@ export default function SimulationView() {
               <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">{selectedCity} District Grid</h4>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Live municipal network monitoring across {selectedCity}. Active IoT scenario running.
+            </p>
           </div>
 
           {/* Data Flow Metrics (3 cards) */}

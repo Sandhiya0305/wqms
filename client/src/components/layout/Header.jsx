@@ -93,17 +93,28 @@ export default function Header({ searchQuery, setSearchQuery }) {
           <div className="w-6 h-6 bg-blue-600 text-white font-bold text-xs flex items-center justify-center">
             {currentUser?.avatar || 'U'}
           </div>
+        </div>
 
-          <div className="hidden lg:block text-left pr-1">
-            <div className="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight">
-              {currentUser?.name}
-            </div>
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight font-mono">
-              {currentUser?.roleLabel}
-            </div>
+        {/* Identity Text */}
+        <div className="hidden lg:block text-left pr-1">
+          <div className="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight">
+            {currentUser?.name}
           </div>
+          <div className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight font-mono">
+            {currentUser?.roleLabel}
+          </div>
+        </div>
 
+        {/* Logout Button */}
+        <button
+          onClick={logout}
+          title="Log out"
+          className="p-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 cursor-pointer"
+        >
+          <LogOut className="w-4 h-4" />
+        </button>
       </div>
+
     </header>
   );
 }

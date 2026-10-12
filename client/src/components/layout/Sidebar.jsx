@@ -3,7 +3,7 @@ import {
   LayoutDashboard, 
   Map, 
   Layers, 
-  Notification, 
+  Bell, 
   ShieldAlert, 
   FileText, 
   Cpu, 
@@ -30,7 +30,7 @@ export default function Sidebar({ activeView, setActiveView }) {
     { id: 'overview', label: 'Command Overview', icon: LayoutDashboard },
     { id: 'map', label: 'Live Water Map', icon: Map },
     { id: 'stations', label: 'Sensor Stations', icon: Layers },
-    { id: 'alerts', label: 'Alerts & Incidents', icon: Notification, badge: totalActiveAlerts },
+    { id: 'alerts', label: 'Alerts & Incidents', icon: Bell, badge: totalActiveAlerts },
     { id: 'thresholds', label: 'Thresholds & Valves', icon: SlidersHorizontal, exclusive: true },
     { id: 'simulation', label: 'Emergency Simulator', icon: Flame, exclusive: true },
     { id: 'reports', label: 'Quality Reports', icon: FileText },
@@ -41,7 +41,7 @@ export default function Sidebar({ activeView, setActiveView }) {
     { id: 'calibration', label: 'Probe Calibration', icon: Wrench, exclusive: true },
     { id: 'map', label: 'Sensor Station Map', icon: Map },
     { id: 'stations', label: 'Live Probe Readings', icon: Layers },
-    { id: 'alerts', label: 'Equipment Alerts', icon: Notification, badge: totalActiveAlerts },
+    { id: 'alerts', label: 'Equipment Alerts', icon: Bell, badge: totalActiveAlerts },
   ];
 
   const healthOfficerNavItems = [
@@ -49,7 +49,7 @@ export default function Sidebar({ activeView, setActiveView }) {
     { id: 'overview', label: 'City Health Overview', icon: LayoutDashboard },
     { id: 'citizen_tracker', label: 'Incident Grievances', icon: ClipboardList, exclusive: true },
     { id: 'map', label: 'Water Risk GIS Map', icon: Map },
-    { id: 'alerts', label: 'Contamination Alerts', icon: Notification, badge: totalActiveAlerts },
+    { id: 'alerts', label: 'Contamination Alerts', icon: Bell, badge: totalActiveAlerts },
     { id: 'reports', label: 'WHO Audit Reports', icon: FileText },
   ];
 

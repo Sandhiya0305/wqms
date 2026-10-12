@@ -98,9 +98,8 @@ export default function LoginModal() {
                     </div>
 
                     <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono text-slate-400">
-                      <span>{acc.email}</span>
-                      <span className="text-slate-500 font-semibold">{acc.password}</span>
-                    </div>
+                        {/* Credentials hidden - use manual login or demo role switch */}
+                      </div>
                   </button>
                 );
               })}
