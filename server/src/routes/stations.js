@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// GET /api/v1/stations
+// GET /api/v1/stations?city=Trichy
 router.get('/', (req, res) => {
   try {
-    const stations = db.getStations();
+    const city = req.query.city || null;
+    const stations = db.getStations(city);
     res.json({ success: true, count: stations.length, data: stations });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

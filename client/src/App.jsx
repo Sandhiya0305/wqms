@@ -1,36 +1,100 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { TelemetryProvider } from './context/TelemetryContext';
-import Navbar from './components/common/Navbar';
-import AuthorityDashboard from './components/authority/AuthorityDashboard';
-import CitizenPortal from './components/citizen/CitizenPortal';
-import SimulatorControl from './components/simulator/SimulatorControl';
 
-export default function App() {
-  const [activeTab, setActiveTab] = useState('authority');
+import Sidebar from './components/layout/Sidebar';
+import Header from './components/layout/Header';
+import LoginPage from './components/auth/LoginPage';
+
+// Views
+import OverviewView from './components/views/OverviewView';
+import StationDetailsView from './components/views/StationDetailsView';
+import AlertsTriageView from './components/views/AlertsTriageView';
+import SimulationView from './components/views/SimulationView';
+import HardwareSetupView from './components/views/HardwareSetupView';
+import MapView from './components/views/MapView';
+import ReportsView from './components/views/ReportsView';
+import ThresholdCalibrationView from './components/views/ThresholdCalibrationView';
+import HealthAdvisoriesManagerView from './components/views/HealthAdvisoriesManagerView';
+import SensorCalibrationToolView from './components/views/SensorCalibrationToolView';
+
+// Citizen Views
+import CitizenHomeView from './components/views/CitizenHomeView';
+import CitizenReportView from './components/views/CitizenReportView';
+import CitizenTrackerView from './components/views/CitizenTrackerView';
+import CitizenAdvisoriesView from './components/views/CitizenAdvisoriesView';
+
+function MainLayout() {
+  const { currentUser, isCitizen } = useAuth();
+  const [activeView, setActiveView] = useState(() => currentUser?.defaultView || 'overview');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Switch default view when user changes
+  useEffect(() => {
+    if (currentUser) {
+      setActiveView(currentUser.defaultView || 'overview');
+    }
+  }, [currentUser?.id]);
+
+  if (!currentUser) {
+    return <LoginPage />;
+  }
 
   return (
-    <TelemetryProvider>
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-        <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+    <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#090D16] text-slate-800 dark:text-slate-100 font-sans antialiased overflow-hidden selection:bg-blue-600 selection:text-white transition-colors duration-200">
+      
+      {/* Sidebar with strictly filtered role items */}
+      <Sidebar activeView={activeView} setActiveView={setActiveView} />
 
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {activeTab === 'authority' && <AuthorityDashboard />}
-          {activeTab === 'citizen' && <CitizenPortal />}
-          {activeTab === 'simulator' && <SimulatorControl />}
-        </main>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        
+        {/* Top Header with City Selector, Theme Toggle & Logout */}
+        <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
-        <footer className="border-t border-slate-800/80 bg-slate-900/60 py-6 text-xs text-slate-500 mt-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div>
-              <span className="font-semibold text-slate-400">AquaIntel Water Quality Monitoring & Risk Intelligence Platform</span>
-              <p className="text-[11px] text-slate-600 mt-0.5">Compliant with WHO Guidelines for Drinking-Water Quality (4th Ed) & BIS IS 10500:2012</p>
-            </div>
-            <div className="text-right text-[11px] text-slate-500 font-mono">
-              IoT Telemetry Ingestion • Aedes MQTT :1883 • WebSocket :3001
-            </div>
+        {/* View Router */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto pb-12">
+            
+            {/* Common & Authority Views */}
+            {activeView === 'overview' && <OverviewView setActiveView={setActiveView} />}
+            {activeView === 'map' && <MapView setActiveView={setActiveView} />}
+            {activeView === 'stations' && <StationDetailsView setActiveView={setActiveView} />}
+            {activeView === 'alerts' && <AlertsTriageView setActiveView={setActiveView} />}
+            {activeView === 'telemetry' && <StationDetailsView setActiveView={setActiveView} />}
+            {activeView === 'reports' && <ReportsView setActiveView={setActiveView} />}
+            {activeView === 'hardware' && <HardwareSetupView setActiveView={setActiveView} />}
+
+            {/* Role-Exclusive Views */}
+            {activeView === 'thresholds' && <ThresholdCalibrationView setActiveView={setActiveView} />}
+            {activeView === 'simulation' && <SimulationView setActiveView={setActiveView} />}
+            {activeView === 'health_advisories' && <HealthAdvisoriesManagerView setActiveView={setActiveView} />}
+            {activeView === 'calibration' && <SensorCalibrationToolView setActiveView={setActiveView} />}
+            {activeView === 'citizen_tracker' && <CitizenTrackerView setActiveView={setActiveView} />}
+
+            {/* Citizen Portal Views */}
+            {activeView === 'citizen_home' && <CitizenHomeView setActiveView={setActiveView} />}
+            {activeView === 'citizen_map' && <MapView setActiveView={setActiveView} />}
+            {activeView === 'citizen_report' && <CitizenReportView setActiveView={setActiveView} />}
+            {activeView === 'citizen_advisories' && <CitizenAdvisoriesView setActiveView={setActiveView} />}
+
           </div>
-        </footer>
+        </main>
       </div>
-    </TelemetryProvider>
+
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <TelemetryProvider>
+          <MainLayout />
+        </TelemetryProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

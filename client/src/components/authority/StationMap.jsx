@@ -1,40 +1,116 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { useTelemetry } from '../../context/TelemetryContext';
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+
+const MAP_API_KEY = import.meta.env.VITE_MAP_API_KEY || '';
+const TILE_URL_TEMPLATE = import.meta.env.VITE_MAP_TILE_URL || '';
+
+// Keyless default basemaps (prerasterized, key auth via {key} when TILE_URL is keyless-independent)
+const DEFAULT_TILES = {
+  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  light: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+};
+
+// Build the tile URL: keyed provider via env, else CARTO fallback
+function buildTileUrl(isDark) {
+  if (TILE_URL_TEMPLATE && MAP_API_KEY) {
+    return TILE_URL_TEMPLATE.replace('{key}', MAP_API_KEY);
+  }
+  return isDark ? DEFAULT_TILES.dark : DEFAULT_TILES.light;
+}
+
+const CITY_COORDINATES = {
+  Trichy: { center: [10.8280, 78.6960], zoom: 13 },
+  Chennai: { center: [13.0400, 80.2000], zoom: 12 },
+  Bengaluru: { center: [12.9716, 77.5946], zoom: 12 },
+  Madurai: { center: [9.9252, 78.1198], zoom: 12 }
+};
 
 export default function StationMap() {
   const { stations, latestTelemetry, selectedStationId, setSelectedStationId } = useTelemetry();
+  const { selectedCity } = useAuth();
+  const { isDark } = useTheme();
+
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const tileLayerRef = useRef(null);
   const markersRef = useRef({});
 
+  // Initialize Map
   useEffect(() => {
     if (!mapContainerRef.current) return;
-    if (mapInstanceRef.current) return; // Initialize only once
+    if (mapInstanceRef.current) return;
 
-    // Center coordinates around Delhi NCR public water stations
+    const initialCity = CITY_COORDINATES[selectedCity] || CITY_COORDINATES['Trichy'];
+
     const map = L.map(mapContainerRef.current, {
-      center: [28.6250, 77.2000],
-      zoom: 12,
+      center: initialCity.center,
+      zoom: initialCity.zoom,
       zoomControl: true,
       attributionControl: false
     });
 
-    // Dark cartographic tiles (CartoDB Dark Matter)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    const tileUrl = buildTileUrl(isDark);
+
+    const tileLayer = L.tileLayer(tileUrl, {
       maxZoom: 19,
-      subdomains: 'abcd'
+      subdomains: TILE_URL_TEMPLATE && MAP_API_KEY ? '' : 'abcd'
     }).addTo(map);
 
+    tileLayerRef.current = tileLayer;
     mapInstanceRef.current = map;
 
+    // Ensure the map paints correctly when the container is laid out after init
+    // (classic Leaflet blank-tile issue on SPA view mounts) and on window resize.
+    const invalidate = () => map.invalidateSize();
+    const initTimer = setTimeout(invalidate, 100);
+    window.addEventListener('resize', invalidate);
+
     return () => {
+      clearTimeout(initTimer);
+      window.removeEventListener('resize', invalidate);
       map.remove();
       mapInstanceRef.current = null;
     };
   }, []);
 
-  // Update markers when stations or telemetry change
+  // Update Tile Layer on Theme Change
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+    }
+
+    const tileUrl = buildTileUrl(isDark);
+
+    const newTileLayer = L.tileLayer(tileUrl, {
+      maxZoom: 19,
+      subdomains: TILE_URL_TEMPLATE && MAP_API_KEY ? '' : 'abcd'
+    }).addTo(map);
+
+    tileLayerRef.current = newTileLayer;
+  }, [isDark]);
+
+  // Re-fit the map whenever stations/telemetry refresh or the view becomes active
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    map.invalidateSize();
+  }, [stations.length, isDark, selectedCity]);
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const target = CITY_COORDINATES[selectedCity] || CITY_COORDINATES['Trichy'];
+    map.flyTo(target.center, target.zoom, { duration: 1.0 });
+  }, [selectedCity]);
+
+  // Update Markers
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -43,21 +119,24 @@ export default function StationMap() {
       const tel = latestTelemetry[station.id];
       const wqi = tel ? tel.wqi_score : 20;
       const isSelected = station.id === selectedStationId;
+      const isCurrentCity = !selectedCity || station.city === selectedCity;
 
-      // Color based on WQI and station status
-      let pinColor = '#10B981'; // green
-      let pingClass = '';
+      let pinColor = '#10B981'; // Green
+      let statusWord = 'Safe';
+
       if (wqi > 75 || station.status === 'CRITICAL') {
-        pinColor = '#EF4444'; // red
-        pingClass = 'animate-ping';
+        pinColor = '#EF4444'; // Red
+        statusWord = 'Hazardous';
       } else if (wqi > 50 || station.status === 'WARNING') {
-        pinColor = '#F59E0B'; // amber
+        pinColor = '#F59E0B'; // Amber
+        statusWord = 'Caution';
       }
 
+      const size = isSelected ? 30 : isCurrentCity ? 24 : 16;
+
       const iconHtml = `
-        <div style="position: relative; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-          <div style="position: absolute; width: ${isSelected ? '32px' : '24px'}; height: ${isSelected ? '32px' : '24px'}; border-radius: 9999px; background-color: ${pinColor}; opacity: 0.3;" class="${pingClass}"></div>
-          <div style="width: ${isSelected ? '20px' : '16px'}; height: ${isSelected ? '20px' : '16px'}; border-radius: 9999px; background-color: ${pinColor}; border: 2px solid #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center;">
+        <div style="width: ${size}px; height: ${size}px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+          <div style="width: ${size}px; height: ${size}px; background-color: ${pinColor}; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);">
           </div>
         </div>
       `;
@@ -65,37 +144,44 @@ export default function StationMap() {
       const customIcon = L.divIcon({
         className: 'custom-station-pin',
         html: iconHtml,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2]
       });
 
       if (markersRef.current[station.id]) {
-        // Update existing marker
         markersRef.current[station.id].setIcon(customIcon);
         markersRef.current[station.id].setLatLng([station.latitude, station.longitude]);
       } else {
-        // Create new marker
         const marker = L.marker([station.latitude, station.longitude], { icon: customIcon }).addTo(map);
-
         marker.on('click', () => {
           setSelectedStationId(station.id);
         });
-
         markersRef.current[station.id] = marker;
       }
 
-      // Popup Content
+      // Boxy, clean popup
       const popupHtml = `
-        <div style="padding: 4px; min-width: 180px;">
-          <div style="font-weight: 700; font-size: 13px; color: #ffffff; margin-bottom: 2px;">${station.name}</div>
-          <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px;">${station.district} • <span style="color: #38bdf8;">${station.type}</span></div>
-          <div style="display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 6px 8px; border-radius: 6px; margin-bottom: 6px;">
-            <span style="font-size: 11px; color: #94a3b8;">Water Quality Index:</span>
-            <span style="font-size: 13px; font-weight: bold; font-family: monospace; color: ${pinColor};">${wqi ?? '--'}</span>
+        <div style="padding: 4px; min-width: 190px; font-family: sans-serif;">
+          <div style="font-weight: 700; font-size: 13px; color: ${isDark ? '#f8fafc' : '#0f172a'}; margin-bottom: 2px;">
+            ${station.name}
           </div>
-          <div style="font-size: 10px; color: #64748b; margin-bottom: 6px;">Lat: ${station.latitude.toFixed(4)}, Lng: ${station.longitude.toFixed(4)}</div>
-          <button style="width: 100%; padding: 4px 8px; font-size: 11px; background: #0284c7; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;" onclick="window.selectAquaStation('${station.id}')">
-            View Live Telemetry
+          <div style="font-size: 11px; color: ${isDark ? '#94a3b8' : '#64748b'}; margin-bottom: 6px;">
+            ${station.district} • <span style="font-weight: 600; color: #0284c7;">${station.city || 'Trichy'}</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; background: ${isDark ? '#1e293b' : '#f1f5f9'}; padding: 4px 8px; margin-bottom: 6px; border-left: 3px solid ${pinColor};">
+            <span style="font-size: 11px; font-weight: 600; color: ${isDark ? '#cbd5e1' : '#475569'};">Status:</span>
+            <span style="font-size: 11px; font-weight: 700; color: ${pinColor};">${statusWord}</span>
+          </div>
+
+          <div style="font-size: 11px; color: ${isDark ? '#94a3b8' : '#475569'}; margin-bottom: 6px; line-height: 1.4;">
+            <div>Turbidity: <strong>${tel ? tel.turbidity : 1.8} NTU</strong></div>
+            <div>pH: <strong>${tel ? tel.ph : 7.2}</strong></div>
+            <div>WQI Score: <strong>${100 - Math.min(100, wqi)} / 100</strong></div>
+          </div>
+
+          <button style="width: 100%; padding: 4px 8px; font-size: 11px; background: #2563eb; color: white; border: none; cursor: pointer; font-weight: 600;" onclick="window.selectAquaStation('${station.id}')">
+            Select Station
           </button>
         </div>
       `;
@@ -103,30 +189,36 @@ export default function StationMap() {
       markersRef.current[station.id].bindPopup(popupHtml);
     });
 
-    // Expose select function to global window for popup button
     window.selectAquaStation = (id) => {
       setSelectedStationId(id);
     };
-  }, [stations, latestTelemetry, selectedStationId, setSelectedStationId]);
+  }, [stations, latestTelemetry, selectedStationId, setSelectedStationId, selectedCity, isDark]);
 
   return (
-    <div className="relative w-full h-[380px] rounded-2xl overflow-hidden border border-slate-800 shadow-xl bg-slate-900">
+    <div className="relative w-full h-[460px] border border-slate-300 dark:border-slate-800 bg-slate-900">
       <div ref={mapContainerRef} className="w-full h-full" />
       
-      {/* Map Legend Overlay */}
-      <div className="absolute top-3 right-3 z-[1000] bg-slate-900/90 backdrop-blur-md px-3 py-2 rounded-xl border border-slate-700/80 text-xs shadow-lg">
-        <div className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Station Quality</div>
-        <div className="flex flex-col gap-1 text-[11px]">
-          <span className="flex items-center gap-2 text-slate-300">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Safe / Potable (&lt;50)
+      {/* Boxy Map Legend */}
+      <div className="absolute top-3 right-3 z-[1000] bg-white dark:bg-slate-900 px-3 py-2 border border-slate-300 dark:border-slate-700 text-xs shadow space-y-1">
+        <div className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+          Quality Status
+        </div>
+        <div className="flex flex-col gap-1 text-[11px] text-slate-600 dark:text-slate-300">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 bg-emerald-500 inline-block"></span> Safe (&lt;50)
           </span>
-          <span className="flex items-center gap-2 text-slate-300">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Caution / Moderate (50-75)
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 bg-amber-500 inline-block"></span> Caution (50-75)
           </span>
-          <span className="flex items-center gap-2 text-slate-300">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span> Critical / Hazard (&gt;75)
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 bg-rose-500 inline-block"></span> Critical (&gt;75)
           </span>
         </div>
+      </div>
+
+      {/* Boxy City Pill */}
+      <div className="absolute bottom-3 left-3 z-[1000] bg-white dark:bg-slate-900 px-3 py-1 border border-slate-300 dark:border-slate-700 text-xs font-mono font-bold text-slate-700 dark:text-slate-300 shadow">
+        Grid: {selectedCity}
       </div>
     </div>
   );

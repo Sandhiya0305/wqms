@@ -16,6 +16,9 @@ const alertsRoutes = require('./routes/alerts');
 const riskRoutes = require('./routes/risk');
 const citizenRoutes = require('./routes/citizen');
 const simulationRoutes = require('./routes/simulation');
+const advisoriesRoutes = require('./routes/advisories');
+const thresholdsRoutes = require('./routes/thresholds');
+const calibrationRoutes = require('./routes/calibration');
 
 // 1. Initialize DB and Seed data
 seedDatabaseIfEmpty(db);
@@ -40,6 +43,9 @@ app.use('/api/v1/alerts', alertsRoutes);
 app.use('/api/v1/risk', riskRoutes);
 app.use('/api/v1/citizen', citizenRoutes);
 app.use('/api/v1/simulation', simulationRoutes);
+app.use('/api/v1/advisories', advisoriesRoutes);
+app.use('/api/v1/thresholds', thresholdsRoutes);
+app.use('/api/v1/calibration', calibrationRoutes);
 
 // Root healthcheck
 app.get('/api/health', (req, res) => {
