@@ -82,9 +82,6 @@ export default function SimulationView() {
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             Scenario Simulation & Stress Testing
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
-            Simulate chemical spills, storm runoff, and disinfection failures to verify automated alerts and emergency workflows.
-          </p>
         </div>
       </div>
 
@@ -195,9 +192,6 @@ export default function SimulationView() {
               <span className="w-2.5 h-2.5 rounded-none bg-emerald-500 animate-pulse"></span>
               <h4 className="text-base font-bold text-slate-900 dark:text-slate-100">{selectedCity} District Grid</h4>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Live municipal network monitoring across {selectedCity}. Active IoT scenario running.
-            </p>
           </div>
 
           {/* Data Flow Metrics (3 cards) */}

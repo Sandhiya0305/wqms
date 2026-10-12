@@ -90,7 +90,7 @@ export default function StationDetailsView({ setActiveView }) {
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            {currentStation?.district} • {currentStation?.city} • Latitude: <span className="font-mono">{currentStation?.latitude}</span> • Longitude: <span className="font-mono">{currentStation?.longitude}</span>
+            {currentStation?.district} • {currentStation?.city}
           </p>
         </div>
 

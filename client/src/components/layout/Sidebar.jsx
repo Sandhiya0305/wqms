@@ -14,14 +14,13 @@ import {
   SlidersHorizontal, 
   Wrench, 
   ClipboardList, 
-  LogOut, 
   Flame 
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTelemetry } from '../../context/TelemetryContext';
 
 export default function Sidebar({ activeView, setActiveView }) {
-  const { currentUser, isCitizen, isEngineer, isFieldOps, isHealthOfficer, logout } = useAuth();
+  const { currentUser, isCitizen, isEngineer, isFieldOps, isHealthOfficer } = useAuth();
   const { activeAlerts } = useTelemetry();
 
   const totalActiveAlerts = activeAlerts.filter(a => a.status !== 'RESOLVED').length;
@@ -124,9 +123,9 @@ export default function Sidebar({ activeView, setActiveView }) {
         </nav>
       </div>
 
-      {/* User Info & Logout at Bottom - Boxy */}
+      {/* User Info at Bottom - Boxy */}
       <div className="p-2 border-t border-slate-800 bg-slate-950">
-        <div className="p-2 border border-slate-800 flex items-center justify-between bg-slate-900">
+        <div className="p-2 border border-slate-800 flex items-center bg-slate-900">
           <div className="flex items-center gap-2 overflow-hidden">
             <div className="w-6 h-6 bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
               {currentUser?.avatar || 'U'}
@@ -136,14 +135,6 @@ export default function Sidebar({ activeView, setActiveView }) {
               <div className="text-[10px] text-slate-400 truncate font-mono">{currentUser?.title}</div>
             </div>
           </div>
-
-          <button
-            onClick={logout}
-            title="Sign Out"
-            className="p-1 text-slate-400 hover:text-red-400 hover:bg-slate-800 transition shrink-0 cursor-pointer"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
         </div>
       </div>
 

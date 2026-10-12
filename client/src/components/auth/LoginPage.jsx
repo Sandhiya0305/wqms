@@ -137,7 +137,7 @@ export default function LoginPage() {
                   <input
                     type="email"
                     required
-                    placeholder="e.g. engineer@waterguard.gov"
+                    placeholder="you@agency.gov"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className={`w-full pl-9 pr-3 py-2 border text-xs focus:outline-none focus:border-blue-600 ${
@@ -185,47 +185,6 @@ export default function LoginPage() {
                 {loading ? 'Verifying...' : 'Sign In'}
               </button>
             </form>
-
-            {/* Static Reference Table (Non-Clickable, No Autofill) */}
-            <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-2">
-                Available Accounts Reference:
-              </span>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-[11px] text-left border border-slate-200 dark:border-slate-800">
-                  <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
-                    <tr>
-                      <th className="p-1.5">Role</th>
-                      <th className="p-1.5">Email</th>
-                      <th className="p-1.5">Password</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-mono text-slate-700 dark:text-slate-300">
-                    <tr>
-                      <td className="p-1.5 font-sans font-medium">Engineer</td>
-                      <td className="p-1.5">engineer@waterguard.gov</td>
-                      <td className="p-1.5">admin123</td>
-                    </tr>
-                    <tr>
-                      <td className="p-1.5 font-sans font-medium">Field Ops</td>
-                      <td className="p-1.5">fieldops@waterguard.gov</td>
-                      <td className="p-1.5">field123</td>
-                    </tr>
-                    <tr>
-                      <td className="p-1.5 font-sans font-medium">Health Officer</td>
-                      <td className="p-1.5">health@waterguard.gov</td>
-                      <td className="p-1.5">health123</td>
-                    </tr>
-                    <tr>
-                      <td className="p-1.5 font-sans font-medium">Citizen</td>
-                      <td className="p-1.5">citizen@waterguard.org</td>
-                      <td className="p-1.5">citizen123</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
 
           </div>
 

@@ -47,9 +47,6 @@ export default function HardwareSetupView({ setActiveView }) {
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             IoT Edge Hardware & Firmware Setup
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
-            Configure microcontrollers, download ESP32 firmware, inspect wiring schematics, and monitor transmission buses.
-          </p>
         </div>
       </div>
 

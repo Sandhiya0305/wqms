@@ -73,9 +73,6 @@ export default function CitizenReportView({ setActiveView }) {
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
           Report Water Quality Issue
         </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-          Submit observed issues to municipal dispatch for inspection and water line testing.
-        </p>
       </div>
 
       {/* Success State */}

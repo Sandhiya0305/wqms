@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { useTelemetry } from '../../context/TelemetryContext';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -62,7 +63,15 @@ export default function StationMap() {
     tileLayerRef.current = tileLayer;
     mapInstanceRef.current = map;
 
+    // Ensure the map paints correctly when the container is laid out after init
+    // (classic Leaflet blank-tile issue on SPA view mounts) and on window resize.
+    const invalidate = () => map.invalidateSize();
+    const initTimer = setTimeout(invalidate, 100);
+    window.addEventListener('resize', invalidate);
+
     return () => {
+      clearTimeout(initTimer);
+      window.removeEventListener('resize', invalidate);
       map.remove();
       mapInstanceRef.current = null;
     };
@@ -87,7 +96,12 @@ export default function StationMap() {
     tileLayerRef.current = newTileLayer;
   }, [isDark]);
 
-  // Recenter when city changes
+  // Re-fit the map whenever stations/telemetry refresh or the view becomes active
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    map.invalidateSize();
+  }, [stations.length, isDark, selectedCity]);
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;

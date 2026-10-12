@@ -124,7 +124,7 @@ export default function LoginModal() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
                 <input
                   type="email"
-                  placeholder="e.g. engineer@waterguard.gov"
+                  placeholder="you@agency.gov"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -135,7 +135,7 @@ export default function LoginModal() {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Password</label>
                 <input
                   type="password"
-                  placeholder="e.g. admin123"
+                  placeholder="Enter password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"

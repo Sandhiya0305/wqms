@@ -12,8 +12,6 @@ dist/
 # Environment variables
 .env*
 *.env*
-# Keep the template tracked
-!.env.example
 
 # IDE
 .vscode/

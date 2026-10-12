@@ -103,9 +103,6 @@ export default function SensorCalibrationToolView({ setActiveView }) {
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             Sensor Calibration & Diagnostics
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
-            Maintain probe accuracy for municipal nodes in {selectedCity}. Perform 2-point reference buffer adjustments, compute ADC slope/offset, and flash calibration parameters.
-          </p>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">

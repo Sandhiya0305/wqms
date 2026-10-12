@@ -77,9 +77,6 @@ export default function CitizenHomeView({ setActiveView }) {
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             Tap Water Quality Intelligence
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Real-time sensor readings from municipal distribution lines across {selectedCity}.
-          </p>
 
           {/* Area Selector Buttons */}
           <div className="mt-4">

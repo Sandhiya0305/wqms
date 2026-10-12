@@ -91,9 +91,6 @@ export default function AlertsTriageView({ setActiveView }) {
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             Water Quality Alerts & Incident Triage
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
-            Sensor anomalies and threshold violation tickets logged across {selectedCity}.
-          </p>
         </div>
 
         {isEngineer && (

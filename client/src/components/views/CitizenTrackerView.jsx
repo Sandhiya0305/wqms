@@ -82,12 +82,6 @@ export default function CitizenTrackerView({ setActiveView }) {
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             Water Quality Complaint Tracker
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
-            {isHealthOfficer 
-              ? `Triage and dispatch inspection teams for drinking water complaints across ${selectedCity}.`
-              : `Real-time progress on water quality issues logged by residents in ${selectedCity}.`
-            }
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
