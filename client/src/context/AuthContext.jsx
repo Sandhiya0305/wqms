@@ -14,7 +14,7 @@ export const DEMO_ACCOUNTS = [
     department: 'Central Water Authority & Engineering',
     defaultView: 'overview',
     description: 'Full supervisory authority: command center overview, live GIS mapping, threshold calibration, emergency valve overrides, and scenario simulation.',
-    allowedViews: ['overview', 'map', 'stations', 'alerts', 'telemetry', 'thresholds', 'hardware', 'simulation', 'reports']
+    allowedViews: ['overview', 'map', 'stations', 'alerts', 'thresholds', 'reports']
   },
   {
     id: 'field_ops',
@@ -29,7 +29,7 @@ export const DEMO_ACCOUNTS = [
     department: 'IoT Edge Fleet & Telemetry Maintenance',
     defaultView: 'hardware',
     description: 'Field maintenance authority: IoT edge sensor fleet, battery & signal diagnostics, probe recalibration logs, firmware downloads, and wiring specs.',
-    allowedViews: ['hardware', 'map', 'stations', 'alerts', 'telemetry']
+    allowedViews: ['hardware', 'map', 'stations', 'alerts']
   },
   {
     id: 'health_officer',
@@ -44,7 +44,7 @@ export const DEMO_ACCOUNTS = [
     department: 'Directorate of Public Health & Epidemiology',
     defaultView: 'health_advisories',
     description: 'Health authority: authorizes and publishes official Boil Water Advisories, reviews WHO/BIS quality audits, investigates citizen incident complaints.',
-    allowedViews: ['health_advisories', 'overview', 'map', 'stations', 'alerts', 'reports']
+    allowedViews: ['health_advisories', 'overview', 'map', 'alerts', 'reports', 'citizen_tracker']
   },
   {
     id: 'citizen',

@@ -14,7 +14,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 export default function StationDetailsView({ setActiveView }) {
-  const { stations, selectedStationId, setSelectedStationId, latestTelemetry } = useTelemetry();
+  const { stations, selectedStationId, setSelectedStationId, latestTelemetry, stationHistories } = useTelemetry();
   const { selectedCity } = useAuth();
   const { isDark } = useTheme();
 
@@ -32,16 +32,12 @@ export default function StationDetailsView({ setActiveView }) {
     { name: 'Water Temperature', value: tel.temperature ?? 26.5, unit: '°C', status: 'Normal', icon: Thermometer },
   ];
 
-  // 24h multi-line trend mock for Recharts
-  const trendData = [
-    { time: '00:00', ph: 7.2, turbidity: 1.7, tds: 185 },
-    { time: '04:00', ph: 7.3, turbidity: 1.8, tds: 188 },
-    { time: '08:00', ph: 7.4, turbidity: 2.1, tds: 192 },
-    { time: '12:00', ph: 7.3, turbidity: 1.9, tds: 190 },
-    { time: '16:00', ph: 7.2, turbidity: 1.8, tds: 189 },
-    { time: '20:00', ph: 7.3, turbidity: 1.8, tds: 191 },
-    { time: 'Now', ph: tel.ph || 7.3, turbidity: tel.turbidity || 1.8, tds: tel.tds || 190 },
-  ];
+  const trendData = (stationHistories[currentStation?.id] || []).slice(-24).map(reading => ({
+    time: new Date(reading.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    ph: reading.ph,
+    turbidity: reading.turbidity_ntu,
+    tds: reading.tds_ppm
+  }));
 
   const wqiScore = 100 - Math.min(100, tel.wqi_score ?? 20);
 

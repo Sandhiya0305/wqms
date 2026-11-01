@@ -8,10 +8,10 @@ import { useTheme } from '../../context/ThemeContext';
 const MAP_API_KEY = import.meta.env.VITE_MAP_API_KEY || '';
 const TILE_URL_TEMPLATE = import.meta.env.VITE_MAP_TILE_URL || '';
 
-// Keyless default basemaps (prerasterized, key auth via {key} when TILE_URL is keyless-independent)
+// Keyless fallback basemap. Deployments can still provide a keyed provider through env.
 const DEFAULT_TILES = {
-  dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-  light: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+  dark: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  light: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 };
 
 // Build the tile URL: keyed provider via env, else CARTO fallback
@@ -50,27 +50,32 @@ export default function StationMap() {
       center: initialCity.center,
       zoom: initialCity.zoom,
       zoomControl: true,
-      attributionControl: false
+      attributionControl: true
     });
 
     const tileUrl = buildTileUrl(isDark);
 
     const tileLayer = L.tileLayer(tileUrl, {
       maxZoom: 19,
-      subdomains: TILE_URL_TEMPLATE && MAP_API_KEY ? '' : 'abcd'
+      subdomains: TILE_URL_TEMPLATE && MAP_API_KEY ? '' : 'abc',
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
     tileLayerRef.current = tileLayer;
     mapInstanceRef.current = map;
 
-    // Ensure the map paints correctly when the container is laid out after init
-    // (classic Leaflet blank-tile issue on SPA view mounts) and on window resize.
+    // Keep Leaflet in sync with SPA layout changes so tiles and markers remain visible.
     const invalidate = () => map.invalidateSize();
     const initTimer = setTimeout(invalidate, 100);
+    const secondInitTimer = setTimeout(invalidate, 400);
+    const resizeObserver = new ResizeObserver(invalidate);
+    resizeObserver.observe(mapContainerRef.current);
     window.addEventListener('resize', invalidate);
 
     return () => {
       clearTimeout(initTimer);
+      clearTimeout(secondInitTimer);
+      resizeObserver.disconnect();
       window.removeEventListener('resize', invalidate);
       map.remove();
       mapInstanceRef.current = null;
@@ -90,7 +95,8 @@ export default function StationMap() {
 
     const newTileLayer = L.tileLayer(tileUrl, {
       maxZoom: 19,
-      subdomains: TILE_URL_TEMPLATE && MAP_API_KEY ? '' : 'abcd'
+      subdomains: TILE_URL_TEMPLATE && MAP_API_KEY ? '' : 'abc',
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
     tileLayerRef.current = newTileLayer;

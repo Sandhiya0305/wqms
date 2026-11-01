@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  Search, 
   MapPin, 
   Radio, 
   Sun, 
@@ -11,30 +10,43 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useTelemetry } from '../../context/TelemetryContext';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
 
-export default function Header({ searchQuery, setSearchQuery }) {
-  const { currentUser, logout, selectedCity, setSelectedCity, isCitizen } = useAuth();
-  const { theme, toggleTheme, isDark } = useTheme();
-  const { connected, activeAlerts } = useTelemetry();
+const viewTitles = {
+  overview: 'Overview',
+  map: 'Station map',
+  stations: 'Stations',
+  alerts: 'Alerts',
+  thresholds: 'Thresholds',
+  reports: 'Reports',
+  hardware: 'Fleet health',
+  calibration: 'Probe calibration',
+  health_advisories: 'Advisories',
+  citizen_tracker: 'Citizen reports',
+  citizen_home: 'Water status',
+  citizen_map: 'Safety map',
+  citizen_report: 'Report a problem',
+  citizen_advisories: 'Advisories'
+};
+
+export default function Header({ activeView }) {
+  const { currentUser, logout, selectedCity, setSelectedCity } = useAuth();
+  const { toggleTheme, isDark } = useTheme();
+  const { connected } = useTelemetry();
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
 
   const availableCities = ['Trichy', 'Chennai', 'Bengaluru', 'Madurai'];
 
   return (
-    <header className="h-14 bg-white dark:bg-slate-900 border-b border-slate-300 dark:border-slate-800 px-5 flex items-center justify-between sticky top-0 z-20">
-      
-      {/* Search Input Bar - Boxy */}
-      <div className="flex items-center gap-3 w-full max-w-md">
-        <div className="relative w-full">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder={isCitizen ? "Search neighborhood in " + selectedCity + "..." : "Search stations, alerts, or parameters..."}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 dark:bg-slate-950 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 pl-9 pr-3 py-1.5 border border-slate-300 dark:border-slate-700 focus:outline-none focus:border-blue-600 font-medium"
-          />
-        </div>
+    <header className="h-16 bg-white dark:bg-[#172033] border-b border-slate-200 dark:border-slate-700/70 px-6 flex items-center justify-between sticky top-0 z-20">
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+          {currentUser?.roleLabel}
+        </p>
+        <h1 className="text-sm font-semibold text-slate-900 dark:text-white">
+          {viewTitles[activeView] || 'WaterGuard'}
+        </h1>
       </div>
 
       {/* Right Controls - Boxy */}
@@ -42,14 +54,15 @@ export default function Header({ searchQuery, setSearchQuery }) {
         
         {/* City Selector Dropdown */}
         <div className="relative">
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setCityDropdownOpen(!cityDropdownOpen)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-blue-500 cursor-pointer"
           >
             <MapPin className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             <span>{selectedCity}</span>
             <ChevronDown className="w-3 h-3 text-slate-400" />
-          </button>
+          </Button>
 
           {cityDropdownOpen && (
             <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 shadow-md py-1 z-50 text-xs">
@@ -74,19 +87,21 @@ export default function Header({ searchQuery, setSearchQuery }) {
         </div>
 
         {/* Live IoT Status */}
-        <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 font-mono">
+        <Badge variant={connected ? 'success' : 'danger'} className="hidden md:inline-flex gap-1.5 px-2.5 py-1.5">
           <Radio className={`w-3.5 h-3.5 ${connected ? 'text-blue-600' : 'text-red-500'}`} />
-          <span className="text-[11px]">{connected ? 'Live' : 'Offline'}</span>
-        </div>
+          {connected ? 'Live data' : 'Offline'}
+        </Badge>
 
         {/* Theme Toggle Button */}
-        <button
+        <Button
+          variant="outline"
+          size="icon"
+          className="justify-center"
           onClick={toggleTheme}
           title={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
-          className="p-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 cursor-pointer"
         >
           {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
-        </button>
+        </Button>
 
         {/* User Card */}
         <div className="flex items-center gap-2 pl-2 pr-1 py-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700">
@@ -106,13 +121,15 @@ export default function Header({ searchQuery, setSearchQuery }) {
         </div>
 
         {/* Logout Button */}
-        <button
+        <Button
+          variant="outline"
+          size="icon"
+          className="justify-center"
           onClick={logout}
           title="Log out"
-          className="p-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400 cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
-        </button>
+        </Button>
       </div>
 
     </header>

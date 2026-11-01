@@ -4,8 +4,17 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 font-sans;
+    @apply bg-slate-100 text-slate-900 font-sans;
   }
+}
+
+button, input, select, textarea {
+  font: inherit;
+}
+
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid #06b6d4;
+  outline-offset: 2px;
 }
 
 /* Custom scrollbars */

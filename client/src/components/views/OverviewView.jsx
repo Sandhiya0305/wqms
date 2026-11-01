@@ -13,6 +13,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import StationMap from '../authority/StationMap';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { Button } from '../ui/button';
 
 export default function OverviewView({ setActiveView }) {
   const { stations, latestTelemetry, activeAlerts } = useTelemetry();
@@ -63,8 +64,8 @@ export default function OverviewView({ setActiveView }) {
             <MapPin className="w-3.5 h-3.5" />
             <span>Command Center • {selectedCity}</span>
           </div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Water Quality Overview
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-white tracking-tight">
+            Overview
           </h1>
         </div>
 
@@ -86,99 +87,58 @@ export default function OverviewView({ setActiveView }) {
         </div>
       </div>
 
-      {/* 4 Stat Cards - Boxy */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        
-        {/* Total Stations */}
-        <div className="bg-white dark:bg-slate-900 p-4 border border-slate-300 dark:border-slate-800 flex items-start justify-between">
-          <div>
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Total Stations</span>
-            <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono mt-1">
-              {cityStations.length}
-            </div>
-            <div className="text-[11px] text-slate-500 mt-1">
-              Active in {selectedCity}
-            </div>
-          </div>
-          <div className="w-8 h-8 bg-blue-50 dark:bg-blue-950 text-blue-600 flex items-center justify-center">
-            <Layers className="w-4 h-4" />
-          </div>
-        </div>
-
-        {/* Safe Quality */}
-        <div className="bg-white dark:bg-slate-900 p-4 border border-slate-300 dark:border-slate-800 flex items-start justify-between">
-          <div>
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Safe Potable</span>
-            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 font-mono mt-1">
-              {safeCount}
-            </div>
-            <div className="text-[11px] text-emerald-600 mt-1">
-              WQI &lt; 50 (Meets Standards)
-            </div>
-          </div>
-          <div className="w-8 h-8 bg-emerald-50 dark:bg-emerald-950 text-emerald-600 flex items-center justify-center">
-            <CheckCircle2 className="w-4 h-4" />
-          </div>
-        </div>
-
-        {/* Filter Recommended */}
-        <div className="bg-white dark:bg-slate-900 p-4 border border-slate-300 dark:border-slate-800 flex items-start justify-between">
-          <div>
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Filter Recommended</span>
-            <div className="text-2xl font-bold text-amber-500 font-mono mt-1">
-              {cautionCount}
-            </div>
-            <div className="text-[11px] text-amber-600 mt-1">
-              WQI 50-75 (Moderate)
-            </div>
-          </div>
-          <div className="w-8 h-8 bg-amber-50 dark:bg-amber-950 text-amber-500 flex items-center justify-center">
-            <AlertTriangle className="w-4 h-4" />
-          </div>
-        </div>
-
-        {/* Boil Advisories */}
-        <div className="bg-white dark:bg-slate-900 p-4 border border-slate-300 dark:border-slate-800 flex items-start justify-between">
-          <div>
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Boil Notices</span>
-            <div className="text-2xl font-bold text-red-600 font-mono mt-1">
-              {criticalCount}
-            </div>
-            <div className="text-[11px] text-red-600 mt-1">
-              WQI &gt; 75 (Critical)
-            </div>
-          </div>
-          <div className="w-8 h-8 bg-red-50 dark:bg-red-950 text-red-600 flex items-center justify-center">
-            <AlertOctagon className="w-4 h-4" />
-          </div>
-        </div>
-
+        {[
+          { label: 'Stations', value: cityStations.length, note: 'View stations', icon: Layers, tone: 'text-blue-600', iconTone: 'bg-blue-50 dark:bg-blue-950', view: 'stations' },
+          { label: 'Safe', value: safeCount, note: 'Within standard', icon: CheckCircle2, tone: 'text-emerald-600', iconTone: 'bg-emerald-50 dark:bg-emerald-950', view: 'stations' },
+          { label: 'Review', value: cautionCount, note: 'Needs review', icon: AlertTriangle, tone: 'text-amber-500', iconTone: 'bg-amber-50 dark:bg-amber-950', view: 'stations' },
+          { label: 'Alerts', value: criticalCount, note: 'Open alerts', icon: AlertOctagon, tone: 'text-red-600', iconTone: 'bg-red-50 dark:bg-red-950', view: 'alerts' }
+        ].map(metric => {
+          const Icon = metric.icon;
+          return (
+            <button
+              key={metric.label}
+              onClick={() => setActiveView(metric.view)}
+              className="text-left bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-800 flex items-start justify-between hover:border-cyan-400 transition-colors"
+            >
+              <div>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{metric.label}</span>
+                <div className={`text-2xl font-bold font-mono mt-1 ${metric.tone}`}>{metric.value}</div>
+                <div className={`text-[11px] mt-1 ${metric.tone}`}>{metric.note}</div>
+              </div>
+              <div className={`w-8 h-8 rounded-md ${metric.iconTone} ${metric.tone} flex items-center justify-center`}>
+                <Icon className="w-4 h-4" />
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       {/* Main Grid: Left Map + Right Trend & Alerts - Boxy */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* Left: Water Quality Map Card - Boxy */}
-        <div className="lg:col-span-7 bg-white dark:bg-slate-900 p-4 border border-slate-300 dark:border-slate-800 flex flex-col justify-between">
+        <div className="lg:col-span-7 bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-800 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                Geospatial Network ({selectedCity})
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                Station map
               </h3>
-              <span 
-                className="text-xs text-blue-600 dark:text-blue-400 font-semibold cursor-pointer hover:underline" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setActiveView('map')}
               >
-                Expand Map &gt;
-              </span>
+                Open map
+              </Button>
             </div>
             
             <StationMap />
           </div>
 
           <div className="mt-3 pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-            <span>Sensors updating via IoT stream</span>
-            <span className="font-mono text-[11px] text-blue-600">3s interval</span>
+            <span>Last update</span>
+            <span className="font-mono text-[11px] text-cyan-600">Live</span>
           </div>
         </div>
 
@@ -186,13 +146,13 @@ export default function OverviewView({ setActiveView }) {
         <div className="lg:col-span-5 flex flex-col gap-4">
           
           {/* Trend Chart - Boxy */}
-          <div className="bg-white dark:bg-slate-900 p-4 border border-slate-300 dark:border-slate-800 flex-1">
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-800 flex-1">
             <div className="flex items-start justify-between mb-2">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                  7-Day Quality Trend
+                  Quality trend
                 </h3>
-                <span className="text-[11px] text-slate-500">Average WQI Score</span>
+                <span className="text-[11px] text-slate-500">Average score</span>
               </div>
               <div className="text-right">
                 <span className="text-base font-bold font-mono text-blue-600">85.4%</span>

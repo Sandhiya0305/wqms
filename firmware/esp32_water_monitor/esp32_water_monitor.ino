@@ -1,9 +1,3 @@
-/*
- * Water Quality Monitoring System - ESP32 IoT Edge Node Firmware
- * Continuous multi-parameter telemetry via MQTT and HTTP REST
- * Compatible with Arduino IDE & PlatformIO
- */
-
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <PubSubClient.h>
