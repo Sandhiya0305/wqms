@@ -1,0 +1,4 @@
+Municipal Engineer	engineer@waterguard.gov	admin123
+Field Operations Lead	fieldops@waterguard.gov	field123
+Chief Public Health Officer	health@waterguard.gov	health123
+Citizen	citizen@waterguard.org	citizen123

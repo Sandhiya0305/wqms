@@ -1,17 +1,17 @@
-#ifndef CONFIG_H
+// #ifndef CONFIG_H
 #define CONFIG_H
 
 // ==========================================
 // WiFi Network Configuration
 // ==========================================
-#define WIFI_SSID       "Your_WiFi_SSID"
-#define WIFI_PASSWORD   "Your_WiFi_Password"
+#define WIFI_SSID       "vivo Y21s"
+#define WIFI_PASSWORD   "vebathvai"
 
 // ==========================================
 // Backend & MQTT Server Configuration
 // ==========================================
 // Replace with the IP address of the machine running the Water Quality platform
-#define SERVER_HOST     "192.168.1.100" 
+#define SERVER_HOST     "172.17.18.50" 
 #define HTTP_PORT       3001
 #define MQTT_PORT       1883
 

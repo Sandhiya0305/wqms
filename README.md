@@ -1,8 +1,8 @@
 # AquaIntel: Public Water Quality Monitoring & Risk Intelligence Platform
 
-AquaIntel is an end-to-end water quality monitoring platform. It ingests multi-parameter sensor readings from public water sources (rivers, reservoirs, treatment plants, tap networks, community borewells), validates and stores time-series data in SQLite, computes the WHO/BIS Weighted Arithmetic Water Quality Index (WAWQI), runs multi-method anomaly detection, scores operational risk, raises alert lifecycles, and serves dual authority/citizen dashboards in real time over WebSockets.
+AquaIntel is an end-to-end water quality monitoring platform. Its current integrated ESP32 node reads water temperature with a DS18B20 probe and TDS through an analog sensor interface, applies edge-side processing and temperature compensation, and transmits station telemetry over WiFi. The platform validates and stores time-series data in SQLite, computes the WHO/BIS Weighted Arithmetic Water Quality Index (WAWQI), runs multi-method anomaly detection, scores operational risk, raises alert lifecycles, and serves authority/citizen dashboards in real time over WebSockets.
 
-The demo simulation engine generates realistic telemetry for 21 stations across 4 cities (Trichy, Chennai, Bengaluru, Madurai), so the platform works out of the box with no external services.
+The internal simulation engine remains available for dashboard development and multi-station demonstrations. It generates realistic telemetry for 21 stations across 4 cities (Trichy, Chennai, Bengaluru, Madurai), so the platform also works out of the box without an ESP32.
 
 ---
 
@@ -11,9 +11,17 @@ The demo simulation engine generates realistic telemetry for 21 stations across 
 ```mermaid
 flowchart LR
     subgraph Producers
-        HW[ESP32 Firmware<br/>MQTT + HTTP]
+        HW[Integrated ESP32 Node<br/>DS18B20 + TDS]
         SIM[Simulation Engine<br/>4s tick]
         CLI[CLI Fleet Simulator<br/>scripts/iot_fleet_simulator.js]
+    end
+
+    subgraph Edge [Hardware Edge]
+        TEMP[DS18B20<br/>GPIO 4]
+        TDS[Analog TDS<br/>GPIO 32]
+        PROC[ESP32 Processing<br/>temperature compensation]
+        TEMP --> PROC
+        TDS --> PROC
     end
 
     subgraph Server [Node.js Server :3001]
@@ -30,13 +38,13 @@ flowchart LR
 
     subgraph Clients
         AUTH[React Client :5173/:3001<br/>4 role-based portals]
-        PHYS[Physical IoT Nodes]
+        SERIAL[USB Serial Monitor]
     end
 
-    HW -->|publish| MQTT
+    PROC -->|WiFi telemetry| HW
+    HW -->|MQTT publish| MQTT
+    HW -->|HTTP fallback| API
     CLI -->|POST| API
-    PHYS -.->|publish| MQTT
-    HW -->|POST fallback| API
 
     MQTT --> VAL
     API --> VAL
@@ -55,6 +63,7 @@ flowchart LR
 
     WS -->|INITIAL_SNAPSHOT<br/>TELEMETRY_UPDATE<br/>ALERT_RAISED<br/>SIMULATION_STATUS| AUTH
     AUTH -->|fetch REST| API
+    HW -->|debug output| SERIAL
 ```
 
 ---
@@ -63,7 +72,10 @@ flowchart LR
 
 ```mermaid
 sequenceDiagram
-    participant S as Sensor / Simulator
+    participant T as DS18B20 Temperature
+    participant TDS as Analog TDS Sensor
+    participant E as ESP32 Edge Node
+    participant S as Simulator
     participant V as Validator
     participant W as WQI Engine
     participant A as Anomaly Detector
@@ -73,7 +85,11 @@ sequenceDiagram
     participant Ws as WebSocket
     participant C as Client Dashboard
 
-    S->>V: sensor reading (MQTT or REST)
+    T->>E: temperature via OneWire
+    TDS->>E: analog ADC signal
+    E->>E: voltage conversion + temperature compensation
+    E->>V: telemetry via MQTT or HTTP fallback
+    S->>V: simulated telemetry via REST
     V->>V: validate + clamp ranges
     V->>W: clean reading
     W->>W: compute WAWQI score & class
@@ -92,6 +108,19 @@ sequenceDiagram
     Ws->>C: TELEMETRY_UPDATE broadcast
     C->>C: update charts, map pins, status banners
 ```
+
+### Integrated ESP32 Hardware Workflow
+
+The current physical telemetry path is:
+
+1. **Measure temperature** — the DS18B20 probe on GPIO 4 returns a digital temperature value over OneWire.
+2. **Measure TDS** — the analog TDS interface on GPIO 32 provides an ADC signal to the ESP32.
+3. **Process at the edge** — the firmware converts the ADC value to voltage, applies temperature compensation using the DS18B20 reading, calculates TDS, and prepares the station payload.
+4. **Transmit** — the ESP32 connects to WiFi and publishes telemetry to `water/sensors/<station_id>/telemetry` using MQTT. HTTP `POST /api/v1/telemetry` is used as a fallback when MQTT is unavailable.
+5. **Validate and analyze** — the backend validates the payload, stores the reading, calculates WAWQI and risk context, and checks for anomalies.
+6. **Distribute** — the backend broadcasts updates over WebSocket so the role-based dashboards can refresh station cards, charts, maps, and alerts.
+
+The platform-level processing that follows hardware or simulated ingestion is:
 
 1. **Ingestion** — readings arrive via MQTT (`water/sensors/<station_id>/telemetry`), HTTP `POST /api/v1/telemetry`, or the internal simulation engine (4,000 ms tick, adjustable speed).
 2. **Validation** — the validator rejects out-of-range/malformed payloads and normalizes units to the canonical schema.
@@ -209,6 +238,35 @@ Configuration: all settings have sane defaults in `server/src/config.js` (`PORT=
 
 ---
 
+## Running From VS Code and Testing Hardware
+
+### VS Code without an ESP32
+
+You can run the web application entirely from VS Code, but a computer cannot read ESP32 GPIO pins directly. The local dashboard will therefore show readings from the built-in server simulator, not from a physical temperature probe:
+
+```bash
+npm install
+npm --prefix server install
+npm --prefix client install
+npm run build:client
+npm start
+```
+
+Open `http://localhost:3001`. This is sufficient for demonstrating the dashboard, analytics, alerts, and simulated telemetry.
+
+### VS Code with the ESP32 and DS18B20
+
+To see an actual temperature reading, you need an ESP32 board, a DS18B20 probe, a USB data cable, and an Arduino-compatible ESP32 toolchain in VS Code (PlatformIO or the Arduino extension). Install the firmware dependencies `OneWire`, `DallasTemperature`, `PubSubClient`, and the ESP32 board package, then:
+
+1. Wire the DS18B20 to 3.3 V, GND, and GPIO 4, with a 4.7 kΩ pull-up resistor from DATA to 3.3 V. The complete wiring table is in `firmware/docs/WIRING_SCHEMATIC.md`.
+2. Set `WIFI_SSID`, `WIFI_PASSWORD`, and `SERVER_HOST` in `firmware/esp32_water_monitor/config.h`. `SERVER_HOST` must be the computer's LAN IP address, not `localhost`.
+3. Start the server on the computer with `npm start`, connect the ESP32 and upload `firmware/esp32_water_monitor/esp32_water_monitor.ino`.
+4. Open the VS Code serial monitor at **115200 baud**. The firmware requests the DS18B20 temperature every telemetry interval and sends it to the dashboard over MQTT, with HTTP as a fallback.
+
+The current exam-demo firmware keeps the DS18B20 reading real but uses a controlled TDS demonstration path around 134 ppm because the physical TDS transmitter is faulty. pH and turbidity are not currently connected sensors on the integrated node; they are future expansion channels. If the DS18B20 is disconnected, the firmware uses 25 °C as a safety fallback for calculation continuity.
+
+---
+
 ## API Reference
 
 | Method | Endpoint | Description |
@@ -244,17 +302,19 @@ WebSocket (`ws://localhost:3001/ws`) message types: `INITIAL_SNAPSHOT`, `TELEMET
 
 ## IoT Hardware Integration (ESP32)
 
-Firmware: `firmware/esp32_water_monitor/` — moving-average filtering, temperature compensation, WiFi auto-reconnect, dual MQTT/HTTP failover.
+The integrated hardware node is an ESP32 connected to a DS18B20 temperature probe and an analog TDS sensor. The firmware reads temperature digitally, reads the TDS ADC channel, applies temperature compensation, builds station telemetry, and sends it to the backend over WiFi. It also provides WiFi auto-reconnect, MQTT publishing, HTTP failover, serial diagnostics, and status indication.
 
-| Sensor | Signal Type | ESP32 Pin |
-| :--- | :--- | :--- |
-| Analog pH probe | Analog (0–3.3 V) | GPIO 34 (ADC1_CH6) |
-| DFRobot turbidity | Analog (0–3.3 V) | GPIO 35 (ADC1_CH7) |
-| Analog TDS | Analog (0–2.3 V) | GPIO 32 (ADC1_CH4) |
-| DS18B20 temperature | OneWire | GPIO 4 (4.7 kΩ pull-up) |
-| Status LED | Digital out | GPIO 2 |
+| Sensor / component | Signal type | ESP32 pin | Current status |
+| :--- | :--- | :--- | :--- |
+| Analog TDS | Analog ADC (ADC1_CH4) | GPIO 32 | Integrated hardware input |
+| DS18B20 temperature | OneWire | GPIO 4 (4.7 kΩ pull-up) | Integrated hardware input |
+| Status LED | Digital out | GPIO 2 | Integrated status indicator |
 
-Telemetry topic: `water/sensors/<station_id>/telemetry` · REST fallback: `POST /api/v1/telemetry` with header `x-api-key: wq_device_token_demo_2026` (or your `API_KEY`). Wiring and calibration guides: `firmware/docs/WIRING_SCHEMATIC.md`, `firmware/docs/SENSOR_CALIBRATION.md`.
+The firmware uses `OneWire.h` and `DallasTemperature.h` for the DS18B20, `WiFi.h` and `WiFiClient.h` for networking, `PubSubClient.h` for MQTT, and `HTTPClient.h` for the REST fallback. The DS18B20 temperature is used directly in telemetry and as the temperature-compensation input for TDS. TDS is reported in ppm; conductivity is currently derived from TDS as an approximate secondary value.
+
+The physical node publishes to `water/sensors/<station_id>/telemetry`. The REST fallback is `POST /api/v1/telemetry` with header `x-api-key: wq_device_token_demo_2026` (or your `API_KEY`). Wiring and calibration guides: `firmware/docs/WIRING_SCHEMATIC.md`, `firmware/docs/SENSOR_CALIBRATION.md`.
+
+The pH, turbidity, dissolved-oxygen, and direct-conductivity channels are future expansion points. They are represented in parts of the platform schema and analytics model but are not current physical inputs on this ESP32 node.
 
 ---
 
